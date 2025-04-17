@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/lib/prisma";
 
 // Get user ID from cookies
@@ -170,6 +170,7 @@ export async function createTransaction(formData: FormData) {
 
     revalidatePath("/transactions");
     revalidatePath("/dashboard");
+    revalidateTag("transactions");
 
     return {
       success: true,

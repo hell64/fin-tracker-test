@@ -53,7 +53,7 @@ export async function registerUser(formData: FormData) {
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
     // Store session in a secure HTTP-only cookie
-    cookies().set({
+    (await cookies()).set({
       name: "session_token",
       value: sessionToken,
       expires,
@@ -64,7 +64,7 @@ export async function registerUser(formData: FormData) {
     });
 
     // Store user ID in a cookie for client access
-    cookies().set({
+    (await cookies()).set({
       name: "user_id",
       value: user.id.toString(),
       expires,
@@ -112,7 +112,7 @@ export async function loginUser(formData: FormData) {
     const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
     // Store session in a secure HTTP-only cookie
-    cookies().set({
+    (await cookies()).set({
       name: "session_token",
       value: sessionToken,
       expires,
@@ -123,7 +123,7 @@ export async function loginUser(formData: FormData) {
     });
 
     // Store user ID in a cookie for client access
-    cookies().set({
+    (await cookies()).set({
       name: "user_id",
       value: user.id.toString(),
       expires,
@@ -141,14 +141,14 @@ export async function loginUser(formData: FormData) {
 
 // Logout user
 export async function logoutUser() {
-  cookies().delete("session_token");
-  cookies().delete("user_id");
+  (await cookies()).delete("session_token");
+  (await cookies()).delete("user_id");
   redirect("/login");
 }
 
 // Get current user
 export async function getUser() {
-  const userId = cookies().get("user_id")?.value;
+  const userId = (await cookies()).get("user_id")?.value;
 
   if (!userId) {
     return null;

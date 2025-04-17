@@ -1,11 +1,11 @@
-import { cookies } from "next/headers"
-import prisma from "@/lib/prisma"
+import { cookies } from "next/headers";
+import prisma from "@/lib/prisma";
 
 export async function getUser() {
-  const userId = cookies().get("user_id")?.value
+  const userId = (await cookies()).get("user_id")?.value;
 
   if (!userId) {
-    return null
+    return null;
   }
 
   try {
@@ -16,11 +16,11 @@ export async function getUser() {
         name: true,
         email: true,
       },
-    })
+    });
 
-    return user
+    return user;
   } catch (error) {
-    console.error("Get user error:", error)
-    return null
+    console.error("Get user error:", error);
+    return null;
   }
 }

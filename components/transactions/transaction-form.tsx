@@ -124,13 +124,13 @@ export function TransactionForm({
     <Card>
       <CardHeader>
         <CardTitle>
-          {transaction ? "Edit Transaction" : "Add Transaction"}
+          {transaction ? "Редагувати транзакцію" : "Додати транзакцію"}
         </CardTitle>
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">Тип</Label>
             <Select
               name="type"
               defaultValue={type}
@@ -141,14 +141,14 @@ export function TransactionForm({
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="income">Income</SelectItem>
-                <SelectItem value="expense">Expense</SelectItem>
+                <SelectItem value="income">Дохід</SelectItem>
+                <SelectItem value="expense">Витрата</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">Сума</Label>
             <Input
               id="amount"
               name="amount"
@@ -162,7 +162,7 @@ export function TransactionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Опис</Label>
             <Input
               id="description"
               name="description"
@@ -174,7 +174,7 @@ export function TransactionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category_id">Category</Label>
+            <Label htmlFor="category_id">Категорія</Label>
             <Select
               name="category_id"
               defaultValue={transaction?.category_id?.toString() || ""}
@@ -199,7 +199,7 @@ export function TransactionForm({
           </div>
 
           <div className="space-y-2">
-            <Label>Date</Label>
+            <Label>Дата</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -211,7 +211,7 @@ export function TransactionForm({
                   disabled={isLoading}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : "Pick a date"}
+                  {date ? format(date, "PPP") : "Виберіть дату"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -226,12 +226,12 @@ export function TransactionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label htmlFor="notes">Примітки (Не обов'язково)</Label>
             <Textarea
               id="notes"
               name="notes"
               defaultValue={transaction?.notes || ""}
-              placeholder="Add any additional details..."
+              placeholder="Додайте будь-які додаткові деталі..."
               disabled={isLoading}
             />
           </div>
@@ -243,11 +243,11 @@ export function TransactionForm({
             onClick={onCancel || (() => router.back())}
             disabled={isLoading}
           >
-            Cancel
+            Скасувати
           </Button>
           <Button type="submit" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {transaction ? "Update" : "Create"} Transaction
+            {transaction ? "Оновити" : "Створити"} Транзакцію
           </Button>
         </CardFooter>
       </form>

@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 
 // Get user ID from cookies
-function getUserId() {
-  const userId = cookies().get("user_id")?.value;
+async function getUserId() {
+  const userId = (await cookies()).get("user_id")?.value;
   if (!userId) {
     throw new Error("User not authenticated");
   }
@@ -102,7 +102,7 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
 // Get transaction by ID
 export async function getTransactionById(id: number) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
 
     const transaction = await prisma.transaction.findFirst({
       where: {
@@ -142,7 +142,7 @@ export async function getTransactionById(id: number) {
 // Create transaction
 export async function createTransaction(formData: FormData) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     const amount = Number.parseFloat(formData.get("amount") as string);
     const description = formData.get("description") as string;
     const date = new Date(formData.get("date") as string);
@@ -226,10 +226,10 @@ export async function updateTransaction(id: number, formData: FormData) {
     revalidatePath("/transactions");
     revalidatePath("/dashboard");
 
-    return { success: true, message: "Transaction updated successfully" };
+    return { success: true, message: "Транзакція оновлена успішно" };
   } catch (error) {
     console.error("Update transaction error:", error);
-    return { success: false, message: "Failed to update transaction" };
+    return { success: false, message: "Не вдалося оновити транзакцію" };
   }
 }
 

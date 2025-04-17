@@ -196,7 +196,7 @@ export function TransactionDialog({
                 id="description"
                 name="description"
                 defaultValue={transaction?.description || ""}
-                required
+                // required
               />
             </div>
             <div className="grid gap-2">

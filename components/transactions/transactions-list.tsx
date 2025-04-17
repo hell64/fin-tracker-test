@@ -178,10 +178,10 @@ export function TransactionsList() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Description</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Опис</TableHead>
+              <TableHead>Дата</TableHead>
+              <TableHead>Категорія</TableHead>
+              <TableHead className="text-right">Сума</TableHead>
               <TableHead className="w-[70px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -238,21 +238,21 @@ export function TransactionsList() {
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
+                          <span className="sr-only">Відкрити меню</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <TransactionDialog
                           transaction={transaction}
-                          title="Edit Transaction"
-                          description="Update the details of this transaction."
+                          title="Редагувати транзакцію"
+                          description="Оновіть деталі цієї транзакції."
                           onSuccess={fetchTransactions}
                           trigger={
                             <DropdownMenuItem
                               onSelect={(e) => e.preventDefault()}
                             >
                               <Pencil className="mr-2 h-4 w-4" />
-                              Edit
+                              Редагувати
                             </DropdownMenuItem>
                           }
                         />
@@ -261,7 +261,7 @@ export function TransactionsList() {
                           onSelect={() => confirmDelete(transaction)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
+                          Видалити
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -321,19 +321,18 @@ export function TransactionsList() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Ви впевнені?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              transaction.
+              Ця дія не може бути відмінена. Це видалить транзакцію назавжди.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Скасувати</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteTransaction}
               className="bg-destructive text-destructive-foreground"
             >
-              Delete
+              Видалити
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

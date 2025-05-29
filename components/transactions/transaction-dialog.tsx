@@ -40,10 +40,10 @@ import {
   createTransaction,
   updateTransaction,
 } from "@/app/actions/transaction-actions";
-import { getCategories } from "@/app/actions/category-actions";
 
 interface TransactionDialogProps {
   transaction?: any;
+  categories?: any;
   title?: string;
   description?: string;
   onSuccess?: () => void;
@@ -52,8 +52,9 @@ interface TransactionDialogProps {
 
 export function TransactionDialog({
   transaction,
+  categories,
   title = "Додати транзакцію",
-  description = "Додайте нову транзакцію до свого облікового запису.",
+  description = "Додайте нову транзакцію.",
   onSuccess,
   trigger,
 }: TransactionDialogProps) {
@@ -61,29 +62,11 @@ export function TransactionDialog({
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
   const [date, setDate] = useState<Date>(new Date());
   const [type, setType] = useState<string>(transaction?.type || "expense");
   const [categoryId, setCategoryId] = useState<string>(
     transaction?.category_id?.toString() || ""
   );
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const result = await getCategories(type);
-        if (result.success) {
-          setCategories(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    }
-
-    if (open) {
-      fetchCategories();
-    }
-  }, [open, type]);
 
   useEffect(() => {
     if (transaction) {
@@ -101,6 +84,7 @@ export function TransactionDialog({
       const formData = new FormData(event.currentTarget);
 
       let result;
+      setOpen(false);
       if (transaction) {
         result = await updateTransaction(transaction.id, formData);
       } else {
@@ -112,7 +96,9 @@ export function TransactionDialog({
           title: "Успіх",
           description: result.message,
         });
-        setOpen(false);
+
+        router.refresh();
+
         if (onSuccess) {
           onSuccess();
         }
@@ -190,27 +176,20 @@ export function TransactionDialog({
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Опис</Label>
-              <Input
-                id="description"
-                name="description"
-                defaultValue={transaction?.description || ""}
-                required
-              />
-            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="category_id">Категорія</Label>
               <Select
                 name="category_id"
                 value={categoryId}
                 onValueChange={setCategoryId}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Виберіть категорію" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
+                  {categories?.data.map((category: any) => (
                     <SelectItem
                       key={category.id}
                       value={category.id.toString()}
@@ -248,11 +227,11 @@ export function TransactionDialog({
               <input type="hidden" name="date" value={date.toISOString()} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="notes">Примітки</Label>
+              <Label htmlFor="description">Опис</Label>
               <Textarea
-                id="notes"
-                name="notes"
-                defaultValue={transaction?.notes || ""}
+                id="description"
+                name="description"
+                defaultValue={transaction?.description || ""}
               />
             </div>
           </div>

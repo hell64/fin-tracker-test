@@ -50,7 +50,7 @@ export function DashboardNav() {
               Транзакції
             </Button>
           </Link>
-          <Link href="/budgets">
+          {/* <Link href="/budgets">
             <Button
               variant="ghost"
               className={cn(
@@ -60,6 +60,18 @@ export function DashboardNav() {
             >
               <BarChart3 className="h-4 w-4" />
               Бюджети
+            </Button>
+          </Link> */}
+          <Link href="/categories">
+            <Button
+              variant="ghost"
+              className={cn(
+                "flex w-full items-center justify-start gap-2",
+                pathname === "/budgets" && "bg-muted"
+              )}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Категорії
             </Button>
           </Link>
           <Link href="/settings">

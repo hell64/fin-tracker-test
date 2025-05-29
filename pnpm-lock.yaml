@@ -162,7 +162,7 @@ dependencies:
     specifier: latest
     version: 1.0.1
   date-fns:
-    specifier: latest
+    specifier: ^4.1.0
     version: 4.1.0
   drizzle-orm:
     specifier: latest
@@ -197,6 +197,9 @@ dependencies:
   next-themes:
     specifier: ^0.4.4
     version: 0.4.6(react-dom@19.1.0)(react@19.1.0)
+  nuqs:
+    specifier: ^2.4.3
+    version: 2.4.3(next@15.2.4)(react@19.1.0)
   pg:
     specifier: latest
     version: 8.14.1
@@ -8963,6 +8966,10 @@ packages:
       yallist: 4.0.0
     dev: false
 
+  /mitt@3.0.1:
+    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
+    dev: false
+
   /mkdirp-classic@0.5.3:
     resolution: {integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==}
     dev: false
@@ -9243,6 +9250,29 @@ packages:
 
   /nullthrows@1.1.1:
     resolution: {integrity: sha512-2vPPEi+Z7WqML2jZYddDIfy5Dqb0r2fze2zTxNNknZaFpVHU3mFB3R+DWeJWGVx0ecvttSGlJTI+WG+8Z4cDWw==}
+    dev: false
+
+  /nuqs@2.4.3(next@15.2.4)(react@19.1.0):
+    resolution: {integrity: sha512-BgtlYpvRwLYiJuWzxt34q2bXu/AIS66sLU1QePIMr2LWkb+XH0vKXdbLSgn9t6p7QKzwI7f38rX3Wl9llTXQ8Q==}
+    peerDependencies:
+      '@remix-run/react': '>=2'
+      next: '>=14.2.0'
+      react: '>=18.2.0 || ^19.0.0-0'
+      react-router: ^6 || ^7
+      react-router-dom: ^6 || ^7
+    peerDependenciesMeta:
+      '@remix-run/react':
+        optional: true
+      next:
+        optional: true
+      react-router:
+        optional: true
+      react-router-dom:
+        optional: true
+    dependencies:
+      mitt: 3.0.1
+      next: 15.2.4(@babel/core@7.26.10)(@opentelemetry/api@1.9.0)(react-dom@19.1.0)(react@19.1.0)
+      react: 19.1.0
     dev: false
 
   /ob1@0.82.1:

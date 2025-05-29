@@ -59,7 +59,7 @@ export function RegisterForm() {
             <Input
               id="name"
               name="name"
-              placeholder="Максим"
+              placeholder="Владислав"
               type="text"
               autoCapitalize="none"
               autoCorrect="off"

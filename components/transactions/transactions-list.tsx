@@ -50,9 +50,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export function TransactionsList() {
+export function TransactionsList({ transactions }: { transactions: any }) {
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({
@@ -63,35 +62,37 @@ export function TransactionsList() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [page]);
+  console.log("transactions", transactions);
 
-  async function fetchTransactions() {
-    setLoading(true);
-    try {
-      const result = await getTransactions(page, pagination.limit);
-      if (result.success) {
-        setTransactions(result.data);
-        setPagination(result.pagination);
-      } else {
-        toast({
-          title: "Помилка",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
-      toast({
-        title: "Помилка",
-        description: "Не вдалося отримати транзакції",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
+  // useEffect(() => {
+  //   fetchTransactions();
+  // }, [page]);
+
+  // async function fetchTransactions() {
+  //   setLoading(true);
+  //   try {
+  //     const result = await getTransactions(page, pagination.limit);
+  //     if (result.success) {
+  //       // setTransactions(result.data);
+  //       setPagination(result.pagination);
+  //     } else {
+  //       toast({
+  //         title: "Помилка",
+  //         description: result.message,
+  //         variant: "destructive",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching transactions:", error);
+  //     toast({
+  //       title: "Помилка",
+  //       description: "Не вдалося отримати транзакції",
+  //       variant: "destructive",
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
 
   async function handleDeleteTransaction() {
     if (!transactionToDelete) return;
@@ -103,7 +104,7 @@ export function TransactionsList() {
           title: "Успіх",
           description: result.message,
         });
-        fetchTransactions();
+        // fetchTransactions();
       } else {
         toast({
           title: "Помилка",
@@ -178,10 +179,10 @@ export function TransactionsList() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Опис</TableHead>
+              <TableHead>Сума</TableHead>
               <TableHead>Дата</TableHead>
               <TableHead>Категорія</TableHead>
-              <TableHead className="text-right">Сума</TableHead>
+              <TableHead>Опис</TableHead>
               <TableHead className="w-[70px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -197,10 +198,30 @@ export function TransactionsList() {
                 </TableCell>
               </TableRow>
             ) : (
-              transactions.map((transaction) => (
+              transactions.data.map((transaction: any) => (
                 <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">
-                    {transaction.description}
+                  <TableCell
+                    className={`font-medium ${
+                      transaction.type === "income"
+                        ? "text-green-600"
+                        : "text-destructive"
+                    }`}
+                  >
+                    {transaction.type === "income" ? (
+                      <div className="flex items-center ">
+                        <ArrowUp className="mr-1 h-4 w-4" />$
+                        {Math.abs(
+                          Number.parseFloat(transaction.amount)
+                        ).toFixed(2)}
+                      </div>
+                    ) : (
+                      <div className="flex items-center ">
+                        <ArrowDown className="mr-1 h-4 w-4" />$
+                        {Math.abs(
+                          Number.parseFloat(transaction.amount)
+                        ).toFixed(2)}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     {new Date(transaction.date).toLocaleDateString()}
@@ -210,28 +231,8 @@ export function TransactionsList() {
                       {transaction.category_name || "Uncategorized"}
                     </Badge>
                   </TableCell>
-                  <TableCell
-                    className={`text-right font-medium ${
-                      transaction.type === "income"
-                        ? "text-green-600"
-                        : "text-destructive"
-                    }`}
-                  >
-                    {transaction.type === "income" ? (
-                      <div className="flex items-center justify-end">
-                        <ArrowUp className="mr-1 h-4 w-4" />$
-                        {Math.abs(
-                          Number.parseFloat(transaction.amount)
-                        ).toFixed(2)}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-end">
-                        <ArrowDown className="mr-1 h-4 w-4" />$
-                        {Math.abs(
-                          Number.parseFloat(transaction.amount)
-                        ).toFixed(2)}
-                      </div>
-                    )}
+                  <TableCell className="font-medium">
+                    {transaction.description}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -246,7 +247,7 @@ export function TransactionsList() {
                           transaction={transaction}
                           title="Редагувати транзакцію"
                           description="Оновіть деталі цієї транзакції."
-                          onSuccess={fetchTransactions}
+                          // onSuccess={fetchTransactions}
                           trigger={
                             <DropdownMenuItem
                               onSelect={(e) => e.preventDefault()}

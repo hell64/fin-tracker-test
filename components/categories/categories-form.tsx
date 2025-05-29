@@ -45,7 +45,7 @@ interface TransactionFormProps {
   onCancel?: () => void;
 }
 
-export function TransactionForm({
+export function CategoriesForm({
   transaction,
   onSuccess,
   onCancel,
@@ -226,11 +226,11 @@ export function TransactionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Примітки (Не обов'язково)</Label>
+            <Label htmlFor="description">Опис (Не обов'язково)</Label>
             <Textarea
-              id="notes"
-              name="notes"
-              defaultValue={transaction?.notes || ""}
+              id="description"
+              name="description"
+              defaultValue={transaction?.description || ""}
               placeholder="Додайте будь-які додаткові деталі..."
               disabled={isLoading}
             />

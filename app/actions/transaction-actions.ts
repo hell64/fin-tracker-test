@@ -16,17 +16,24 @@ async function getUserId() {
 // Get transactions with pagination
 export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
+    if (!userId) {
+      return {
+        success: false,
+        message: "User not authenticated",
+        data: [],
+      };
+    }
     const skip = (page - 1) * limit;
 
     // Build where clause based on filters
     const where: any = { user_id: userId };
 
-    if (filters.category) {
+    if (filters.category && filters.category !== "all") {
       where.category_id = Number(filters.category);
     }
 
-    if (filters.type) {
+    if (filters.type && filters.type !== "all") {
       where.type = filters.type;
     }
 
@@ -40,8 +47,8 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
 
     if (filters.search) {
       where.OR = [
+        // { description: { contains: filters.search, mode: "insensitive" } },
         { description: { contains: filters.search, mode: "insensitive" } },
-        { notes: { contains: filters.search, mode: "insensitive" } },
       ];
     }
 
@@ -52,8 +59,6 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
         category: {
           select: {
             name: true,
-            color: true,
-            icon: true,
           },
         },
       },
@@ -66,8 +71,8 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
     const formattedTransactions = transactions.map((transaction) => ({
       ...transaction,
       category_name: transaction.category?.name,
-      category_color: transaction.category?.color,
-      category_icon: transaction.category?.icon,
+      // category_color: transaction.category?.color,
+      // category_icon: transaction.category?.icon,
     }));
 
     // Get total count for pagination
@@ -148,11 +153,10 @@ export async function createTransaction(formData: FormData) {
     const date = new Date(formData.get("date") as string);
     const categoryId = formData.get("category_id") as string;
     const type = formData.get("type") as string;
-    const notes = (formData.get("notes") as string) || null;
 
     // Validate input
-    if (isNaN(amount) || !description || !date || !type) {
-      return { success: false, message: "Не правильні дані" };
+    if (isNaN(amount) || !date || !type || !categoryId) {
+      return { success: false, message: "Неправильні дані" };
     }
 
     // Create transaction
@@ -164,13 +168,10 @@ export async function createTransaction(formData: FormData) {
         date,
         category_id: categoryId ? Number(categoryId) : null,
         type,
-        notes,
       },
     });
 
-    revalidatePath("/transactions");
-    revalidatePath("/dashboard");
-    revalidateTag("transactions");
+    revalidatePath("/");
 
     return {
       success: true,
@@ -192,7 +193,6 @@ export async function updateTransaction(id: number, formData: FormData) {
     const date = new Date(formData.get("date") as string);
     const categoryId = formData.get("category_id") as string;
     const type = formData.get("type") as string;
-    const notes = (formData.get("notes") as string) || null;
 
     // Validate input
     if (isNaN(amount) || !description || !date || !type) {
@@ -220,12 +220,11 @@ export async function updateTransaction(id: number, formData: FormData) {
         date,
         category_id: categoryId ? Number(categoryId) : null,
         type,
-        notes,
       },
     });
 
-    revalidatePath("/transactions");
-    revalidatePath("/dashboard");
+    revalidatePath("/");
+    // revalidatePath("/dashboard");
 
     return { success: true, message: "Транзакція оновлена успішно" };
   } catch (error) {
@@ -256,8 +255,8 @@ export async function deleteTransaction(id: number) {
       where: { id },
     });
 
-    revalidatePath("/transactions");
-    revalidatePath("/dashboard");
+    revalidatePath("/");
+    // revalidatePath("/dashboard");
 
     return { success: true, message: "Транзакція видалена успішно" };
   } catch (error) {

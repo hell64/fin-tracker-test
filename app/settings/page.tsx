@@ -16,7 +16,7 @@ export default async function SettingsPage() {
     <DashboardShell>
       <DashboardHeader
         heading="Налаштування"
-        text="Управляйте своїми налаштуваннями та перевагами облікового запису."
+        text="Керуйте своїми налаштуваннями та перевагами облікового запису."
       />
       <SettingsTabs />
     </DashboardShell>

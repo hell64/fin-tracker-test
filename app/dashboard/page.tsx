@@ -26,9 +26,9 @@ export default async function DashboardPage() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <SpendingChart className="lg:col-span-4" />
-        <BudgetProgress className="lg:col-span-3" />
+        {/* <BudgetProgress className="lg:col-span-3" /> */}
       </div>
-      <RecentTransactions />
+      {/* <RecentTransactions /> */}
     </DashboardShell>
   );
 }

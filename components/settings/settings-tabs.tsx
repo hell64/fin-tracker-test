@@ -52,7 +52,7 @@ export function SettingsTabs() {
           <CardHeader>
             <CardTitle>Основні налаштування</CardTitle>
             <CardDescription>
-              Управляйте своїми налаштуваннями та перевагами облікового запису.
+              Керуйте своїми налаштуваннями та перевагами облікового запису.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

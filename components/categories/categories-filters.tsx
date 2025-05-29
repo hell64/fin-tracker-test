@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarIcon, Filter } from "lucide-react";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,19 +20,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useQueryState } from "nuqs";
-import { useRouter } from "next/navigation";
-import { uk } from "date-fns/locale";
-import { format } from "date-fns";
 
-export function TransactionFilters({ categories }: { categories: any }) {
-  const router = useRouter();
+export function CategoriesFilters() {
   const [category, setCategory] = useQueryState("category", {
-    defaultValue: "all",
+    defaultValue: "",
   });
-  const [date, setDate] = useQueryState("date", {
-    defaultValue: new Date().toISOString(),
-  });
-  const [type, setType] = useQueryState("type", { defaultValue: "all" });
+  const [date, setDate] = useQueryState("date", { defaultValue: "" });
+  const [type, setType] = useQueryState("type", { defaultValue: "" });
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -41,11 +36,12 @@ export function TransactionFilters({ categories }: { categories: any }) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Всі категорії</SelectItem>
-          {categories.data.map((category: any) => (
-            <SelectItem key={category.id} value={category.id.toString()}>
-              {category.name}
-            </SelectItem>
-          ))}
+          <SelectItem value="food">Їжа</SelectItem>
+          <SelectItem value="transportation">Транспорт</SelectItem>
+          <SelectItem value="utilities">Комунальні послуги</SelectItem>
+          <SelectItem value="entertainment">Розваги</SelectItem>
+          <SelectItem value="shopping">Покупки</SelectItem>
+          <SelectItem value="income">Доходи</SelectItem>
         </SelectContent>
       </Select>
       <Select value={type} onValueChange={setType}>
@@ -75,35 +71,30 @@ export function TransactionFilters({ categories }: { categories: any }) {
           <Calendar
             mode="single"
             selected={date ? new Date(date) : undefined}
-            onSelect={(date) => {
-              setDate(date?.toISOString() || "");
-              router.push(
-                `/transactions?category=${category}&type=${type}&date=${date}`
-              );
-            }}
+            onSelect={(date) => setDate(date?.toISOString() || "")}
             initialFocus
           />
         </PopoverContent>
       </Popover>
-      <Button
+      {/* <Button
         variant="outline"
+        size="icon"
         onClick={() => {
-          router.push(
-            `/transactions?category=${category}&type=${type}&date=${date}`
-          );
+          setCategory("");
+          setDate("");
+          setType("");
         }}
       >
         <Filter className="h-4 w-4" />
-        Фільтрувати
-      </Button>
+        <span className="sr-only">Фільтр</span>
+      </Button> */}
       <Button
         variant="ghost"
         className="ml-auto"
         onClick={() => {
-          setCategory("all");
-          setDate(new Date().toISOString());
-          setType("all");
-          router.push(`/transactions?category="all"&type="all"&date=${date}`);
+          setCategory("");
+          setDate("");
+          setType("");
         }}
       >
         Очистити фільтри

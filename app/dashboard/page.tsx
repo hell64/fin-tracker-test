@@ -28,7 +28,6 @@ export default async function DashboardPage() {
         <SpendingChart className="lg:col-span-4" />
         {/* <BudgetProgress className="lg:col-span-3" /> */}
       </div>
-      {/* <RecentTransactions /> */}
     </DashboardShell>
   );
 }

@@ -53,8 +53,9 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
         <TransactionDialog categories={categories} />
       </DashboardHeader>
       <TransactionFilters categories={categories} />
-      <Suspense fallback={<div>Loading...</div>}></Suspense>
-      <TransactionsList transactions={transactions} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <TransactionsList transactions={transactions} />
+      </Suspense>
     </DashboardShell>
   );
 }

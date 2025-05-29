@@ -155,7 +155,7 @@ export async function createTransaction(formData: FormData) {
     const type = formData.get("type") as string;
 
     // Validate input
-    if (isNaN(amount) || !date || !type || !categoryId) {
+    if (isNaN(amount) || !date || !type) {
       return { success: false, message: "Неправильні дані" };
     }
 
@@ -187,7 +187,7 @@ export async function createTransaction(formData: FormData) {
 // Update transaction
 export async function updateTransaction(id: number, formData: FormData) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     const amount = Number.parseFloat(formData.get("amount") as string);
     const description = formData.get("description") as string;
     const date = new Date(formData.get("date") as string);
@@ -236,7 +236,7 @@ export async function updateTransaction(id: number, formData: FormData) {
 // Delete transaction
 export async function deleteTransaction(id: number) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
 
     // Check if transaction exists and belongs to user
     const existingTransaction = await prisma.transaction.findFirst({

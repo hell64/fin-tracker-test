@@ -39,12 +39,12 @@ import { useToast } from "@/hooks/use-toast";
 import {
   createTransaction,
   updateTransaction,
-} from "@/app/actions/transaction-actions";
+} from "@/app/actions/transaction";
 import {
   createCategory,
   getCategories,
   updateCategory,
-} from "@/app/actions/category-actions";
+} from "@/app/actions/category";
 
 interface TransactionDialogProps {
   category?: any;

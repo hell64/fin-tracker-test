@@ -36,8 +36,8 @@ import { cn } from "@/lib/utils";
 import {
   createTransaction,
   updateTransaction,
-} from "@/app/actions/transaction-actions";
-import { getCategories } from "@/app/actions/category-actions";
+} from "@/app/actions/transaction";
+import { getCategories } from "@/app/actions/category";
 
 interface TransactionFormProps {
   transaction?: any;

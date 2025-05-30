@@ -34,11 +34,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
-import {
-  getTransactions,
-  deleteTransaction,
-} from "@/app/actions/transaction-actions";
-import { CategoriesDialog } from "./categories-dialog";
+import { getTransactions, deleteTransaction } from "@/app/actions/transaction";
+import { CategoriesDialog } from "./dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,11 +46,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog } from "../ui/dialog";
-import { CardContent } from "../ui/card";
-import { Card } from "../ui/card";
+import { Dialog } from "@/components/ui/dialog";
+import { CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { deleteCategory } from "@/app/actions/category-actions";
+import { deleteCategory } from "@/app/actions/category";
 // import { Category } from "@/app/types/category";
 
 export function CategoriesList({ categories }: { categories: any }) {

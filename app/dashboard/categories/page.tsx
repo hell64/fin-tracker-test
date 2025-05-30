@@ -15,9 +15,9 @@ import {
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { getCategories } from "../actions/category-actions";
-import { CategoriesList } from "@/components/categories/categories-list";
-import { CategoriesDialog } from "@/components/categories/categories-dialog";
+import { getCategories } from "../actions/category";
+import { CategoriesList } from "./_components/list";
+import { CategoriesDialog } from "./_components/dialog";
 
 // const categories = [
 //   {

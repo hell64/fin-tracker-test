@@ -1,8 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath, revalidateTag } from "next/cache";
 import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 
 // Get user ID from cookies
 async function getUserId() {
@@ -16,18 +18,16 @@ async function getUserId() {
 // Get transactions with pagination
 export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
   try {
-    const userId = await getUserId();
-    if (!userId) {
-      return {
-        success: false,
-        message: "User not authenticated",
-        data: [],
-      };
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
     }
+
     const skip = (page - 1) * limit;
 
     // Build where clause based on filters
-    const where: any = { user_id: userId };
+    const where: any = { id: session.user.id };
 
     if (filters.category && filters.category !== "all") {
       where.category_id = Number(filters.category);
@@ -107,12 +107,15 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
 // Get transaction by ID
 export async function getTransactionById(id: number) {
   try {
-    const userId = await getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
 
     const transaction = await prisma.transaction.findFirst({
       where: {
         id,
-        user_id: userId,
+        user_id: session.user.id,
       },
       include: {
         category: {

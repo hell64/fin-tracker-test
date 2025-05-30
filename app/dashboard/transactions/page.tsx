@@ -1,17 +1,13 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/app/actions/auth-actions";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { TransactionsList } from "@/components/transactions/transactions-list";
-import { TransactionFilters } from "@/components/transactions/transaction-filters";
-import { TransactionDialog } from "@/components/transactions/transaction-dialog";
-import { getTransactions } from "../actions/transaction-actions";
+import { TransactionsList } from "./_components/list";
+import { TransactionFilters } from "./_components/filters";
+import { TransactionDialog } from "./_components/dialog";
+import { getTransactions } from "@/app/actions/transaction";
 import { SearchParams, useQueryState } from "nuqs";
-import {
-  loadSearchParams,
-  transactionSearchParamsCache,
-} from "@/lib/search-params";
+import { transactionSearchParamsCache } from "@/lib/search-params";
 import {
   Pagination,
   PaginationContent,
@@ -21,19 +17,26 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { getCategories } from "../actions/category-actions";
+import { getCategories } from "@/app/actions/category";
 import { Suspense } from "react";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
 };
 
 export default async function TransactionsPage({ searchParams }: PageProps) {
-  const user = await getUser();
   // const { category, date, type, page } = await loadSearchParams(searchParams);
   const { category, date, type, page } = transactionSearchParamsCache.parse(
     await searchParams
   );
+
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
 
   const transactions = await getTransactions(page, 10, {
     category: category === "all" ? "all" : category,
@@ -42,10 +45,6 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
   });
 
   const categories = await getCategories();
-
-  if (!user) {
-    redirect("/login");
-  }
 
   return (
     <DashboardShell>

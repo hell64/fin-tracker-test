@@ -6,7 +6,7 @@ import { BarChart3, CreditCard, Home, LogOut, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { logoutUser } from "@/app/actions/auth-actions";
+import { logoutUser } from "@/app/actions/auth";
 
 export function DashboardNav() {
   const pathname = usePathname();
@@ -19,11 +19,6 @@ export function DashboardNav() {
 
   return (
     <div className="flex h-full flex-col border-r bg-muted/40">
-      <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span>FinanceTrack</span>
-        </Link>
-      </div>
       <div className="flex-1 overflow-auto py-2">
         <nav className="grid items-start px-2 text-sm font-medium">
           <Link href="/dashboard">
@@ -38,7 +33,7 @@ export function DashboardNav() {
               Дашбоард
             </Button>
           </Link>
-          <Link href="/transactions">
+          <Link href="/dashboard/transactions">
             <Button
               variant="ghost"
               className={cn(
@@ -50,7 +45,7 @@ export function DashboardNav() {
               Транзакції
             </Button>
           </Link>
-          {/* <Link href="/budgets">
+          <Link href="/dashboard/budgets">
             <Button
               variant="ghost"
               className={cn(
@@ -61,8 +56,8 @@ export function DashboardNav() {
               <BarChart3 className="h-4 w-4" />
               Бюджети
             </Button>
-          </Link> */}
-          <Link href="/categories">
+          </Link>
+          <Link href="/dashboard/categories">
             <Button
               variant="ghost"
               className={cn(
@@ -74,7 +69,7 @@ export function DashboardNav() {
               Категорії
             </Button>
           </Link>
-          <Link href="/settings">
+          <Link href="/auth/settings">
             <Button
               variant="ghost"
               className={cn(

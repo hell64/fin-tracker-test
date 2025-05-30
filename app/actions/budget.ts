@@ -27,8 +27,8 @@ export async function getBudgets() {
         category: {
           select: {
             name: true,
-            color: true,
-            icon: true,
+            // color: true,
+            // icon: true,
           },
         },
       },
@@ -84,8 +84,8 @@ export async function getBudgets() {
         return {
           ...budget,
           category_name: budget.category.name,
-          category_color: budget.category.color,
-          category_icon: budget.category.icon,
+          // category_color: budget.category.color,
+          // category_icon: budget.category.icon,
           spent,
           percentage,
         };
@@ -105,7 +105,7 @@ export async function getBudgets() {
 // Create budget
 export async function createBudget(formData: FormData) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     const categoryId = Number(formData.get("category_id") as string);
     const amount = Number.parseFloat(formData.get("amount") as string);
     const period = formData.get("period") as string;
@@ -170,7 +170,7 @@ export async function createBudget(formData: FormData) {
 // Update budget
 export async function updateBudget(id: number, formData: FormData) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
     const amount = Number.parseFloat(formData.get("amount") as string);
     const period = formData.get("period") as string;
     const startDate = new Date(formData.get("start_date") as string);
@@ -218,7 +218,7 @@ export async function updateBudget(id: number, formData: FormData) {
 // Delete budget
 export async function deleteBudget(id: number) {
   try {
-    const userId = getUserId();
+    const userId = await getUserId();
 
     // Check if budget exists and belongs to user
     const existingBudget = await prisma.budget.findFirst({

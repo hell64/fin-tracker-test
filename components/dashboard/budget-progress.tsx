@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { getBudgets } from "@/app/actions/budget-actions";
+import { getBudgets } from "@/app/actions/budget";
 
 interface BudgetProgressProps extends HTMLAttributes<HTMLDivElement> {}
 

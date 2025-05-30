@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, DollarSign, Wallet } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTransactionStats } from "@/app/actions/transaction-actions";
+import { getTransactionStats } from "@/app/actions/transaction";
 
 export function OverviewStats() {
   const [stats, setStats] = useState({
@@ -15,35 +15,35 @@ export function OverviewStats() {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const result = await getTransactionStats();
-        if (result.success) {
-          const { balance } = result.data;
-          const totalIncome = Number.parseFloat(balance.total_income);
-          const totalExpenses = Number.parseFloat(balance.total_expenses);
-          const savingsRate =
-            totalIncome > 0
-              ? ((totalIncome - totalExpenses) / totalIncome) * 100
-              : 0;
+  // useEffect(() => {
+  //   async function fetchStats() {
+  //     try {
+  //       const result = await getTransactionStats();
+  //       if (result.success) {
+  //         const { balance } = result.data;
+  //         const totalIncome = Number.parseFloat(balance.total_income);
+  //         const totalExpenses = Number.parseFloat(balance.total_expenses);
+  //         const savingsRate =
+  //           totalIncome > 0
+  //             ? ((totalIncome - totalExpenses) / totalIncome) * 100
+  //             : 0;
 
-          setStats({
-            balance: Number.parseFloat(balance.balance),
-            totalIncome,
-            totalExpenses,
-            savingsRate,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
+  //         setStats({
+  //           balance: Number.parseFloat(balance.balance),
+  //           totalIncome,
+  //           totalExpenses,
+  //           savingsRate,
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching stats:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
 
-    fetchStats();
-  }, []);
+  //   fetchStats();
+  // }, []);
 
   if (loading) {
     return (

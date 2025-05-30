@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { getMonthlySpending } from "@/app/actions/transaction-actions";
+import { getMonthlySpending } from "@/app/actions/transaction";
 
 interface SpendingChartProps extends HTMLAttributes<HTMLDivElement> {}
 

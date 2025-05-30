@@ -1,15 +1,16 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/lib/auth";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { SettingsTabs } from "@/components/settings/settings-tabs";
+import { SettingsTabs } from "@/app/settings/_components/tabs";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function SettingsPage() {
-  const user = await getUser();
+  const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!user) {
-    redirect("/login");
+  if (!session) {
+    redirect("/auth/sign-in");
   }
 
   return (

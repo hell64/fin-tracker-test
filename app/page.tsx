@@ -3,12 +3,15 @@ import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { getUser } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function Home() {
-  const user = await getUser();
+  const session = await auth.api.getSession({ headers: await headers() });
 
-  if (user) {
+  console.log(11111, session);
+
+  if (session) {
     redirect("/dashboard");
   }
 
@@ -23,12 +26,12 @@ export default async function Home() {
           </div>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-2">
-              <Link href="/login">
+              <Link href="/auth/sign-in">
                 <Button variant="ghost" size="sm">
                   Вхід
                 </Button>
               </Link>
-              <Link href="/register">
+              <Link href="/auth/sign-up">
                 <Button size="sm">Реєстрація</Button>
               </Link>
             </nav>

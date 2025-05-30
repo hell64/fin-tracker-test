@@ -39,7 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   createTransaction,
   updateTransaction,
-} from "@/app/actions/transaction-actions";
+} from "@/app/actions/transaction";
 
 interface TransactionDialogProps {
   transaction?: any;

@@ -10,28 +10,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            Int           @id @default(autoincrement())
-  name          String
-  email         String        @unique
-  password_hash String
-  created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
-  transactions  Transaction[]
-  categories    Category[]
-  // budgets       Budget[]
+// model User {
+//   id            Int           @id @default(autoincrement())
+//   name          String
+//   email         String        @unique
+//   password_hash String
+//   created_at    DateTime      @default(now())
+//   updated_at    DateTime      @updatedAt
+//   transactions  Transaction[]
+//   categories    Category[]
+//   budgets       Budget[]
 
-  @@map("users")
-}
+//   @@map("users")
+// }
 
 model Category {
   id           Int           @id @default(autoincrement())
   name         String
   created_at   DateTime      @default(now())
   user_id      Int
-  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  // user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   transactions Transaction[]
-  // budgets      Budget[]
+  budgets      Budget[]
 
   @@map("categories")
 }
@@ -43,25 +43,85 @@ model Transaction {
   description String?
   date        DateTime  @default(now())
   user_id     Int
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  // user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   category_id Int?
   category    Category? @relation(fields: [category_id], references: [id])
 
   @@map("transactions")
 }
 
-// model Budget {
-//   id          Int       @id @default(autoincrement())
-//   amount      Float
-//   period      String // "weekly", "monthly", "yearly"
-//   start_date  DateTime
-//   end_date    DateTime?
-//   created_at  DateTime  @default(now())
-//   updated_at  DateTime  @updatedAt
-//   user_id     Int
-//   user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-//   category_id Int
-//   category    Category  @relation(fields: [category_id], references: [id])
+model Budget {
+  id          Int       @id @default(autoincrement())
+  amount      Float
+  period      String // "weekly", "monthly", "yearly"
+  start_date  DateTime
+  end_date    DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  user_id     Int
+  // user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  category_id Int
+  category    Category  @relation(fields: [category_id], references: [id])
 
-//   @@map("budgets")
-// }
+  @@map("budgets")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}

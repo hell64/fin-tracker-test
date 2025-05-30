@@ -34,11 +34,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
-import {
-  getTransactions,
-  deleteTransaction,
-} from "@/app/actions/transaction-actions";
-import { TransactionDialog } from "./transaction-dialog";
+import { getTransactions, deleteTransaction } from "@/app/actions/transaction";
+import { TransactionDialog } from "./dialog";
 import {
   AlertDialog,
   AlertDialogAction,

@@ -1,33 +1,25 @@
 import { redirect } from "next/navigation";
 
-import { getUser } from "@/lib/auth";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { OverviewStats } from "@/components/dashboard/overview-stats";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { SpendingChart } from "@/components/dashboard/spending-chart";
 import { BudgetProgress } from "@/components/dashboard/budget-progress";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function DashboardPage() {
-  const user = await getUser();
+  const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!user) {
-    redirect("/login");
+  if (!session) {
+    redirect("/auth/sign-in");
   }
 
   return (
     <DashboardShell>
-      <DashboardHeader
-        heading="Дашбоард"
-        text="Ваша фінансова статистика та остання активність."
-      />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <OverviewStats />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <SpendingChart className="lg:col-span-4" />
-        {/* <BudgetProgress className="lg:col-span-3" /> */}
-      </div>
+      <OverviewStats />
+      <SpendingChart />
     </DashboardShell>
   );
 }

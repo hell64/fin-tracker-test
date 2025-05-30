@@ -104,6 +104,8 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
   }
 }
 
+console.log("sfsdf");
+
 // Get transaction by ID
 export async function getTransactionById(id: number) {
   try {

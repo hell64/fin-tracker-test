@@ -6,15 +6,16 @@ import { BarChart3, CreditCard, Home, LogOut, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { logoutUser } from "@/app/actions/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export function DashboardNav() {
   const pathname = usePathname();
   const router = useRouter();
 
   async function handleLogout() {
-    await logoutUser();
-    router.push("/login");
+    await auth.api.signOut({ headers: await headers() });
+    router.push("/auth/sign-in");
   }
 
   return (

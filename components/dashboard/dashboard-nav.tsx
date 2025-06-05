@@ -69,7 +69,7 @@ export function DashboardNav() {
               Категорії
             </Button>
           </Link>
-          <Link href="/auth/settings">
+          <Link href="/dashboard/settings">
             <Button
               variant="ghost"
               className={cn(

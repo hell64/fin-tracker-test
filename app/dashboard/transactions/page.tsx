@@ -53,7 +53,7 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
       </DashboardHeader>
       <TransactionFilters categories={categories} />
       <Suspense fallback={<div>Loading...</div>}>
-        <TransactionsList transactions={transactions} />
+        <TransactionsList transactions={transactions} categories={categories} />
       </Suspense>
     </DashboardShell>
   );

@@ -40,14 +40,19 @@ import {
   createTransaction,
   updateTransaction,
 } from "@/app/actions/transaction";
+import { uk } from "date-fns/locale";
+import { useForm } from "@tanstack/react-form";
+import type { AnyFieldApi } from "@tanstack/react-form";
 
-interface TransactionDialogProps {
-  transaction?: any;
-  categories?: any;
-  title?: string;
-  description?: string;
-  onSuccess?: () => void;
-  trigger?: React.ReactNode;
+function FieldInfo({ field }: { field: AnyFieldApi }) {
+  return (
+    <>
+      {field.state.meta.isTouched && !field.state.meta.isValid ? (
+        <em>{field.state.meta.errors.join(", ")}</em>
+      ) : null}
+      {field.state.meta.isValidating ? "Validating..." : null}
+    </>
+  );
 }
 
 export function TransactionDialog({
@@ -55,53 +60,32 @@ export function TransactionDialog({
   categories,
   title = "Додати транзакцію",
   description = "Додайте нову транзакцію.",
-  onSuccess,
   trigger,
-}: TransactionDialogProps) {
-  const router = useRouter();
+}: any) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [date, setDate] = useState<Date>(new Date());
-  const [type, setType] = useState<string>(transaction?.type || "expense");
-  const [categoryId, setCategoryId] = useState<string>(
-    transaction?.category_id?.toString() || ""
-  );
 
-  useEffect(() => {
-    if (transaction) {
-      setDate(new Date(transaction.date));
-      setType(transaction.type);
-      setCategoryId(transaction.category_id?.toString() || "");
-    }
-  }, [transaction]);
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setLoading(true);
-
-    try {
-      const formData = new FormData(event.currentTarget);
-
+  const form = useForm({
+    defaultValues: {
+      amount: transaction?.amount || "",
+      date: transaction?.date || new Date(),
+      type: transaction?.type || "expense",
+      categoryId: transaction?.category.name || "",
+      description: transaction?.description || "",
+    },
+    onSubmit: async ({ value }) => {
       let result;
-      setOpen(false);
       if (transaction) {
-        result = await updateTransaction(transaction.id, formData);
+        result = await updateTransaction(transaction.id, value);
       } else {
-        result = await createTransaction(formData);
+        result = await createTransaction(value);
       }
-
       if (result.success) {
+        setOpen(false);
         toast({
           title: "Успіх",
           description: result.message,
         });
-
-        router.refresh();
-
-        if (onSuccess) {
-          onSuccess();
-        }
       } else {
         toast({
           title: "Помилка",
@@ -109,17 +93,8 @@ export function TransactionDialog({
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error("Transaction error:", error);
-      toast({
-        title: "Помилка",
-        description: "Сталася непередбачена помилка",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -136,109 +111,157 @@ export function TransactionDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
           <div className="grid gap-4 py-4">
+            <form.Field
+              name="type"
+              validators={{
+                // We can choose between form-wide and field-specific validators
+                onChange: ({ value }) =>
+                  value === "expense" || value === "income"
+                    ? undefined
+                    : "Must be expense or income",
+              }}
+              children={(field) => (
+                <>
+                  <div className="grid gap-2">
+                    <Label htmlFor="type">Тип</Label>
+                    <RadioGroup
+                      id="type"
+                      name="type"
+                      value={field.state.value}
+                      onValueChange={(value) => {
+                        field.handleChange(value);
+                      }}
+                      className="flex"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="expense" id="expense" />
+                        <Label htmlFor="expense" className="cursor-pointer">
+                          Витрата
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <RadioGroupItem value="income" id="income" />
+                        <Label htmlFor="income" className="cursor-pointer">
+                          Дохід
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {!field.state.meta.isValid && (
+                    <em>{field.state.meta.errors.join(",")}</em>
+                  )}
+                </>
+              )}
+            />
+
             <div className="grid gap-2">
-              <Label htmlFor="type">Тип</Label>
-              <RadioGroup
-                id="type"
-                name="type"
-                value={type}
-                onValueChange={(value) => {
-                  setType(value);
-                  setCategoryId("");
-                }}
-                className="flex"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="expense" id="expense" />
-                  <Label htmlFor="expense" className="cursor-pointer">
-                    Витрата
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  <RadioGroupItem value="income" id="income" />
-                  <Label htmlFor="income" className="cursor-pointer">
-                    Дохід
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="amount">Сума</Label>
-              <Input
-                id="amount"
+              <form.Field
                 name="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                defaultValue={transaction?.amount || ""}
-                required
+                children={(field) => (
+                  <Input
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    type="number"
+                    placeholder="Уведіть суму"
+                    step="0.01"
+                    min="0"
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                  />
+                )}
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="category_id">Категорія</Label>
-              <Select
-                name="category_id"
-                value={categoryId}
-                onValueChange={setCategoryId}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Виберіть категорію" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories?.data.map((category: any) => (
-                    <SelectItem
-                      key={category.id}
-                      value={category.id.toString()}
-                    >
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="date">Дата</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
+              <form.Field
+                name="categoryId"
+                children={(field) => (
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(value) => field.handleChange(value)}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={(date) => date && setDate(date)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <input type="hidden" name="date" value={date.toISOString()} />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Виберіть категорію" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.data.map((category: any) => (
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="description">Опис</Label>
-              <Textarea
-                id="description"
+              <form.Field
+                name="date"
+                children={(field) => (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[280px] justify-start text-left font-normal",
+                          !field.state.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.state.value
+                          ? format(field.state.value, "PPP", { locale: uk })
+                          : "Виберіть дату"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={field.state.value}
+                        onSelect={(date) => field.handleChange(date)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
+              />
+            </div>
+            <div className="grid gap-2">
+              <form.Field
                 name="description"
-                defaultValue={transaction?.description || ""}
+                children={(field) => (
+                  <Textarea
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                )}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={loading}>
+            {/* <Button type="submit" disabled={loading}>
               {transaction ? "Оновити" : "Додати"} транзакцію
-            </Button>
+            </Button> */}
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              children={([canSubmit, isSubmitting]) => (
+                <Button type="submit" disabled={!canSubmit} className="w-full">
+                  {isSubmitting ? "Обробка..." : "Додати"}
+                </Button>
+              )}
+            />
           </DialogFooter>
         </form>
       </DialogContent>

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 
-import { getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -15,9 +14,11 @@ import {
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { getCategories } from "../actions/category";
+import { getCategories } from "@/app/actions/category";
 import { CategoriesList } from "./_components/list";
 import { CategoriesDialog } from "./_components/dialog";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 // const categories = [
 //   {
@@ -79,12 +80,12 @@ import { CategoriesDialog } from "./_components/dialog";
 // ];
 
 export default async function CategoriesPage() {
-  const user = await getUser();
+  const session = await auth.api.getSession({ headers: await headers() });
 
   const categories = await getCategories();
 
-  if (!user) {
-    redirect("/login");
+  if (!session) {
+    redirect("/auth/sign-in");
   }
 
   return (

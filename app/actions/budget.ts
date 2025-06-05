@@ -1,246 +1,472 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-// Get user ID from cookies
-async function getUserId() {
-  const userId = (await cookies()).get("user_id")?.value;
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
-  return Number(userId);
-}
-
-// Get all budgets
-export async function getBudgets() {
-  try {
-    const userId = await getUserId();
-
-    // Get budgets with category information
-    const budgets = await prisma.budget.findMany({
-      where: {
-        user_id: userId,
-      },
-      include: {
-        category: {
-          select: {
-            name: true,
-            // color: true,
-            // icon: true,
-          },
-        },
-      },
-      orderBy: {
-        created_at: "desc",
-      },
-    });
-
-    // Calculate spending for each budget
-    const budgetsWithSpending = await Promise.all(
-      budgets.map(async (budget) => {
-        // Determine date range based on budget period
-        let startDate, endDate;
-
-        if (budget.period === "monthly") {
-          const now = new Date();
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        } else if (budget.period === "yearly") {
-          const now = new Date();
-          startDate = new Date(now.getFullYear(), 0, 1);
-          endDate = new Date(now.getFullYear(), 11, 31);
-        } else {
-          // weekly
-          const now = new Date();
-          const day = now.getDay();
-          const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
-          startDate = new Date(now.getFullYear(), now.getMonth(), diff);
-          endDate = new Date(startDate);
-          endDate.setDate(startDate.getDate() + 6);
-        }
-
-        // Get spending for this category in the date range
-        const spending = await prisma.transaction.aggregate({
-          where: {
-            user_id: userId,
-            category_id: budget.category_id,
-            type: "expense",
-            date: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
-          _sum: {
-            amount: true,
-          },
-        });
-
-        const spent = spending._sum.amount || 0;
-        const percentage =
-          budget.amount > 0 ? Math.round((spent / budget.amount) * 100) : 0;
-
-        return {
-          ...budget,
-          category_name: budget.category.name,
-          // category_color: budget.category.color,
-          // category_icon: budget.category.icon,
-          spent,
-          percentage,
-        };
-      })
-    );
-
-    return {
-      success: true,
-      data: budgetsWithSpending,
-    };
-  } catch (error) {
-    console.error("Get budgets error:", error);
-    return { success: false, message: "Failed to fetch budgets" };
-  }
-}
-
-// Create budget
-export async function createBudget(formData: FormData) {
-  try {
-    const userId = await getUserId();
-    const categoryId = Number(formData.get("category_id") as string);
-    const amount = Number.parseFloat(formData.get("amount") as string);
-    const period = formData.get("period") as string;
-    const startDate = new Date(formData.get("start_date") as string);
-    const endDateStr = formData.get("end_date") as string;
-    const endDate = endDateStr ? new Date(endDateStr) : null;
-
-    // Validate input
-    if (isNaN(categoryId) || isNaN(amount) || !period || !startDate) {
-      return { success: false, message: "Invalid input data" };
+// Validation schemas
+const CreateBudgetSchema = z
+  .object({
+    amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
+    period: z.enum(["weekly", "monthly", "yearly"], {
+      errorMap: () => ({ message: "Please select a valid period" }),
+    }),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date().optional(),
+    categoryId: z.coerce.number().min(1, "Please select a category"),
+  })
+  .refine(
+    (data) => {
+      if (data.endDate && data.endDate <= data.startDate) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "End date must be after start date",
+      path: ["endDate"],
     }
+  );
 
-    // Check if category exists and belongs to user
+// const UpdateBudgetSchema = z
+//   .object({
+//     id: z.number(),
+//     amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
+//     period: z.enum(["weekly", "monthly", "yearly"], {
+//       errorMap: () => ({ message: "Please select a valid period" }),
+//     }),
+//     startDate: z.coerce.date(),
+//     endDate: z.coerce.date().optional(),
+//     categoryId: z.coerce.number().min(1, "Please select a category"),
+//   })
+//   .refine(
+//     (data) => {
+//       if (data.endDate && data.endDate <= data.startDate) {
+//         return false;
+//       }
+//       return true;
+//     },
+//     {
+//       message: "End date must be after start date",
+//       path: ["endDate"],
+//     }
+//   );
+
+// Types
+// type BudgetFormState = {
+//   errors?: {
+//     amount?: string[];
+//     period?: string[];
+//     startDate?: string[];
+//     endDate?: string[];
+//     categoryId?: string[];
+//     _form?: string[];
+//   };
+//   success?: boolean;
+// };
+
+// Create Budget
+export async function createBudget({
+  amount,
+  period,
+  startDate,
+  endDate,
+  categoryId,
+}: {
+  amount: number;
+  period: string;
+  startDate: Date;
+  endDate: Date;
+  categoryId: number;
+}): Promise<any> {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  // const validatedFields = CreateBudgetSchema.safeParse({
+  //   amount: formData.get("amount"),
+  //   period: formData.get("period"),
+  //   startDate: formData.get("startDate"),
+  //   endDate: formData.get("endDate") || undefined,
+  //   categoryId: formData.get("categoryId"),
+  // });
+
+  // if (!validatedFields.success) {
+  //   return {
+  //     errors: validatedFields.error.flatten().fieldErrors,
+  //   };
+  // }
+
+  // const { amount, period, startDate, endDate, categoryId } =
+  //   validatedFields.data;
+
+  try {
+    // Verify category belongs to user
     const category = await prisma.category.findFirst({
       where: {
-        id: categoryId,
-        user_id: userId,
+        id: Number(categoryId),
+        userId: session.user.id,
       },
     });
 
     if (!category) {
-      return { success: false, message: "Category not found" };
-    }
-
-    // Check if budget already exists for this category
-    const existingBudget = await prisma.budget.findFirst({
-      where: {
-        user_id: userId,
-        category_id: categoryId,
-      },
-    });
-
-    if (existingBudget) {
       return {
         success: false,
-        message: "A budget already exists for this category",
+        message: "Категорія не знайдена",
       };
     }
 
-    // Create budget
+    // Check for overlapping budgets in same category and period
+    const overlappingBudget = await prisma.budget.findFirst({
+      where: {
+        categoryId: Number(categoryId),
+        userId: session.user.id,
+        period,
+        OR: [
+          {
+            AND: [
+              { startDate: { lte: startDate } },
+              {
+                OR: [{ endDate: { gte: startDate } }, { endDate: null }],
+              },
+            ],
+          },
+          ...(endDate
+            ? [
+                {
+                  AND: [
+                    { startDate: { lte: endDate } },
+                    {
+                      OR: [{ endDate: { gte: endDate } }, { endDate: null }],
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+    });
+
+    if (overlappingBudget) {
+      return {
+        success: true,
+        message:
+          "Бюджет для цієї категорії та періоду вже існує в вибраному діапазоні дат",
+      };
+    }
+
     await prisma.budget.create({
       data: {
-        user_id: userId,
-        category_id: categoryId,
         amount,
         period,
-        start_date: startDate,
-        end_date: endDate,
+        startDate,
+        endDate,
+        categoryId: Number(categoryId),
+        userId: session.user.id,
       },
     });
 
     revalidatePath("/budgets");
-    revalidatePath("/dashboard");
-
-    return { success: true, message: "Budget created successfully" };
+    return { success: true, message: "Бюджет створений успішно" };
   } catch (error) {
     console.error("Create budget error:", error);
-    return { success: false, message: "Failed to create budget" };
+    return { success: false, message: "Не вдалося створити бюджет" };
   }
 }
 
-// Update budget
-export async function updateBudget(id: number, formData: FormData) {
+// Get Budgets
+export async function getBudgets() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
   try {
-    const userId = await getUserId();
-    const amount = Number.parseFloat(formData.get("amount") as string);
-    const period = formData.get("period") as string;
-    const startDate = new Date(formData.get("start_date") as string);
-    const endDateStr = formData.get("end_date") as string;
-    const endDate = endDateStr ? new Date(endDateStr) : null;
+    // const spent = await prisma.transaction.aggregate({
+    //   where: {
+    //     userId: session.user.id,
+    //     type: "expense",
+    //     date: {
+    //       gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+    //       lte: new Date(),
+    //     },
+    //   },
+    //   _sum: { amount: true },
+    // });
 
-    // Validate input
-    if (isNaN(amount) || !period || !startDate) {
-      return { success: false, message: "Invalid input data" };
-    }
+    const budgets = await prisma.budget.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      include: {
+        category: true,
+      },
+      orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
+    });
 
+    return {
+      success: true,
+      data: budgets,
+    };
+  } catch (error) {
+    return { success: false, message: "Не вдалося завантажити бюджети" };
+  }
+}
+
+// Get Current Budgets (active budgets for current date)
+export async function getCurrentBudgets() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  const now = new Date();
+
+  try {
+    const budgets = await prisma.budget.findMany({
+      where: {
+        userId: session.user.id,
+        startDate: { lte: now },
+        OR: [{ endDate: { gte: now } }, { endDate: null }],
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        category: { name: "asc" },
+      },
+    });
+
+    return budgets;
+  } catch (error) {
+    return [];
+  }
+}
+
+// Get Budget by ID
+export async function getBudgetById(id: number) {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  try {
+    const budget = await prisma.budget.findFirst({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    return budget;
+  } catch (error) {
+    return null;
+  }
+}
+
+// Get Budgets by Category
+export async function getBudgetsByCategory(categoryId: number) {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  try {
+    const budgets = await prisma.budget.findMany({
+      where: {
+        categoryId,
+        userId: session.user.id,
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+    });
+
+    return budgets;
+  } catch (error) {
+    return [];
+  }
+}
+
+// Update Budget
+export async function updateBudget(
+  id: number,
+  {
+    amount,
+    period,
+    startDate,
+    endDate,
+    categoryId,
+  }: {
+    amount: number;
+    period: string;
+    startDate: Date;
+    endDate: Date;
+    categoryId: number;
+  }
+): Promise<any> {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  // const validatedFields = UpdateBudgetSchema.safeParse({
+  //   id: Number(formData.get("id")),
+  //   amount: formData.get("amount"),
+  //   period: formData.get("period"),
+  //   startDate: formData.get("startDate"),
+  //   endDate: formData.get("endDate") || undefined,
+  //   categoryId: formData.get("categoryId"),
+  // });
+
+  // if (!validatedFields.success) {
+  //   return {
+  //     errors: validatedFields.error.flatten().fieldErrors,
+  //   };
+  // }
+
+  // const { id, amount, period, startDate, endDate, categoryId } =
+  //   validatedFields.data;
+
+  try {
     // Check if budget exists and belongs to user
     const existingBudget = await prisma.budget.findFirst({
       where: {
         id,
-        user_id: userId,
+        userId: session.user.id,
       },
     });
 
     if (!existingBudget) {
-      return { success: false, message: "Budget not found" };
+      return {
+        success: false,
+        message: "Бюджет не знайдений",
+      };
     }
 
-    // Update budget
+    // Verify category belongs to user
+    const category = await prisma.category.findFirst({
+      where: {
+        id: Number(categoryId),
+        userId: session.user.id,
+      },
+    });
+
+    if (!category) {
+      return {
+        success: false,
+        message: "Категорія не знайдена",
+      };
+    }
+
+    // Check for overlapping budgets (excluding current budget)
+    const overlappingBudget = await prisma.budget.findFirst({
+      where: {
+        id: { not: id },
+        categoryId: Number(categoryId),
+        userId: session.user.id,
+        period,
+        OR: [
+          {
+            AND: [
+              { startDate: { lte: startDate } },
+              {
+                OR: [{ endDate: { gte: startDate } }, { endDate: null }],
+              },
+            ],
+          },
+          ...(endDate
+            ? [
+                {
+                  AND: [
+                    { startDate: { lte: endDate } },
+                    {
+                      OR: [{ endDate: { gte: endDate } }, { endDate: null }],
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
+      },
+    });
+
+    if (overlappingBudget) {
+      return {
+        success: false,
+        message:
+          "Бюджет для цієї категорії та періоду вже існує в вибраному діапазоні дат",
+      };
+    }
+
     await prisma.budget.update({
       where: { id },
       data: {
         amount,
         period,
-        start_date: startDate,
-        end_date: endDate,
+        startDate,
+        endDate,
+        categoryId,
       },
     });
 
     revalidatePath("/budgets");
-    revalidatePath("/dashboard");
-
-    return { success: true, message: "Бюджет оновлено успішно" };
+    return { success: true, message: "Бюджет оновлений успішно" };
   } catch (error) {
     console.error("Update budget error:", error);
-    return { success: false, message: "Не вдалося оновити бюджет" };
+    return {
+      success: false,
+      message: "Не вдалося оновити бюджет",
+    };
   }
 }
 
-// Delete budget
+// Delete Budget
 export async function deleteBudget(id: number) {
-  try {
-    const userId = await getUserId();
+  const session = await auth.api.getSession({ headers: await headers() });
 
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  try {
     // Check if budget exists and belongs to user
-    const existingBudget = await prisma.budget.findFirst({
+    const budget = await prisma.budget.findFirst({
       where: {
         id,
-        user_id: userId,
+        userId: session.user.id,
       },
     });
 
-    if (!existingBudget) {
-      return { success: false, message: "Budget not found" };
+    if (!budget) {
+      throw new Error("Budget not found");
     }
 
-    // Delete budget
     await prisma.budget.delete({
       where: { id },
     });
 
+    revalidatePath("/categories");
     revalidatePath("/budgets");
-    revalidatePath("/dashboard");
+    revalidatePath("/transactions");
 
-    return { success: true, message: "Бюджет видалено успішно" };
+    return { success: true, message: "Бюджет видалений успішно" };
   } catch (error) {
     console.error("Delete budget error:", error);
     return { success: false, message: "Не вдалося видалити бюджет" };

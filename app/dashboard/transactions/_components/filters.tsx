@@ -68,46 +68,47 @@ export function TransactionFilters({ categories }: { categories: any }) {
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PPP") : "Виберіть дату"}
+            {date ? format(date, "PPP", { locale: uk }) : "Виберіть дату"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
             selected={date ? new Date(date) : undefined}
+            locale={uk}
             onSelect={(date) => {
               setDate(date?.toISOString() || "");
               router.push(
-                `/transactions?category=${category}&type=${type}&date=${date}`
+                `/dashboard/transactions?category=${category}&type=${type}&date=${date}`
               );
             }}
             initialFocus
           />
         </PopoverContent>
       </Popover>
-      <Button
+      {/* <Button
         variant="outline"
         onClick={() => {
           router.push(
-            `/transactions?category=${category}&type=${type}&date=${date}`
+            `/dashboard/transactions?category=${category}&type=${type}&date=${date}`
           );
         }}
       >
         <Filter className="h-4 w-4" />
         Фільтрувати
-      </Button>
-      <Button
+      </Button> */}
+      {/* <Button
         variant="ghost"
         className="ml-auto"
         onClick={() => {
           setCategory("all");
           setDate(new Date().toISOString());
           setType("all");
-          router.push(`/transactions?category="all"&type="all"&date=${date}`);
+          // router.push(`/dashboard/transactions?category=all&type=all&date`);
         }}
       >
         Очистити фільтри
-      </Button>
+      </Button> */}
     </div>
   );
 }

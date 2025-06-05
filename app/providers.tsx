@@ -22,8 +22,9 @@ export function Providers({ children }: { children: ReactNode }) {
           // Clear router cache (protected routes)
           router.refresh();
         }}
+        settingsURL="/dashboard/settings"
         Link={Link}
-        localization={betterAuthLocalizationUA as any}
+        localization={betterAuthLocalizationUA}
       >
         {children}
       </AuthUIProvider>

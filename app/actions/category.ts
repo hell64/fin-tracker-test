@@ -1,33 +1,26 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-
-// Get user ID from cookies
-async function getUserId() {
-  const userId = (await cookies()).get("user_id")?.value;
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
-  return Number(userId);
-}
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 // Get all categories
-export async function getCategories(type?: string) {
+export async function getCategories() {
   try {
-    const userId = await getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
 
     // Build where clause
-    // const where: any = { user_id: userId };
-
-    // if (type) {
-    //   where.type = type;
-    // }
+    const where: any = { userId: session.user.id };
 
     // Get categories
     const categories = await prisma.category.findMany({
-      // where,
+      where,
       orderBy: { name: "asc" },
     });
 
@@ -36,19 +29,21 @@ export async function getCategories(type?: string) {
       data: categories,
     };
   } catch (error) {
-    console.error("Get categories error:", error);
-    return { success: false, message: "Failed to fetch categories" };
+    console.error("Помилка отримання категорій:", error);
+    return { success: false, message: "Помилка отримання категорій:" };
   }
 }
 
 // Create category
 export async function createCategory(formData: FormData) {
   try {
-    const userId = await getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
+
     const name = formData.get("name") as string;
-    // const type = formData.get("type") as string;
-    // const color = formData.get("color") as string;
-    // const icon = formData.get("icon") as string;
 
     // Validate input
     if (!name) {
@@ -59,7 +54,7 @@ export async function createCategory(formData: FormData) {
     const existingCategory = await prisma.category.findFirst({
       where: {
         name,
-        user_id: userId,
+        userId: session.user.id,
       },
     });
 
@@ -74,15 +69,10 @@ export async function createCategory(formData: FormData) {
     await prisma.category.create({
       data: {
         name,
-        // type,
-        // color,
-        // icon,
-        user_id: userId,
+        userId: session.user.id,
       },
     });
 
-    // revalidatePath("/transactions");
-    // revalidatePath("/budgets");
     revalidatePath("/categories");
 
     return { success: true, message: "Category created successfully" };
@@ -95,10 +85,13 @@ export async function createCategory(formData: FormData) {
 // Update category
 export async function updateCategory(id: number, formData: FormData) {
   try {
-    const userId = getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
+
     const name = formData.get("name") as string;
-    // const color = formData.get("color") as string;
-    // const icon = formData.get("icon") as string;
 
     // Validate input
     if (!name) {
@@ -109,7 +102,7 @@ export async function updateCategory(id: number, formData: FormData) {
     const existingCategory = await prisma.category.findFirst({
       where: {
         id,
-        user_id: userId,
+        userId: session.user.id,
       },
     });
 
@@ -117,19 +110,11 @@ export async function updateCategory(id: number, formData: FormData) {
       return { success: false, message: "Категорія не знайдена" };
     }
 
-    // Check if category is default
-    if (existingCategory.is_default) {
-      return {
-        success: false,
-        message: "Типові категорії не можна змінювати",
-      };
-    }
-
     // Check if name already exists for another category
     const duplicateCategory = await prisma.category.findFirst({
       where: {
         name,
-        user_id: userId,
+        userId: session.user.id,
         id: { not: id },
       },
     });
@@ -146,12 +131,9 @@ export async function updateCategory(id: number, formData: FormData) {
       where: { id },
       data: {
         name,
-        // color,
-        // icon,
       },
     });
 
-    // revalidatePath("/transactions");
     revalidatePath("/categories");
 
     return { success: true, message: "Категорія оновлена успішно" };
@@ -164,55 +146,11 @@ export async function updateCategory(id: number, formData: FormData) {
 // Delete category
 export async function deleteCategory(id: number) {
   try {
-    const userId = getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
 
-    // Check if category exists and belongs to user
-    // const existingCategory = await prisma.category.findFirst({
-    //   where: {
-    //     id,
-    //     user_id: userId,
-    //   },
-    // });
-
-    // if (!existingCategory) {
-    //   return { success: false, message: "Category not found" };
-    // }
-
-    // Check if category is default
-    // if (existingCategory.is_default) {
-    //   return {
-    //     success: false,
-    //     message: "Default categories cannot be deleted",
-    //   };
-    // }
-
-    // Check if category is used in transactions
-    // const transactionCount = await prisma.transaction.count({
-    //   where: {
-    //     category_id: id,
-    //   },
-    // });
-
-    // if (transactionCount > 0) {
-    //   return {
-    //     success: false,
-    //     message: "This category is used in transactions and cannot be deleted",
-    //   };
-    // }
-
-    // Check if category is used in budgets
-    // const budgetCount = await prisma.budget.count({
-    //   where: {
-    //     category_id: id,
-    //   },
-    // });
-
-    // if (budgetCount > 0) {
-    //   return {
-    //     success: false,
-    //     message: "This category is used in budgets and cannot be deleted",
-    //   };
-    // }
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
 
     // Delete category
     await prisma.category.delete({

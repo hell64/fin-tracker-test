@@ -6,15 +6,6 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
-// Get user ID from cookies
-async function getUserId() {
-  const userId = (await cookies()).get("user_id")?.value;
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
-  return Number(userId);
-}
-
 // Get transactions with pagination
 export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
   try {
@@ -27,27 +18,22 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
     const skip = (page - 1) * limit;
 
     // Build where clause based on filters
-    const where: any = { id: session.user.id };
+    const where: any = { userId: session.user.id };
 
     if (filters.category && filters.category !== "all") {
-      where.category_id = Number(filters.category);
+      where.categoryId = Number(filters.category);
     }
 
     if (filters.type && filters.type !== "all") {
       where.type = filters.type;
     }
 
-    if (filters.startDate) {
-      where.date = { ...(where.date || {}), gte: new Date(filters.startDate) };
-    }
-
-    if (filters.endDate) {
-      where.date = { ...(where.date || {}), lte: new Date(filters.endDate) };
+    if (filters.date) {
+      where.date = { ...(where.date || {}), lte: new Date(filters.date) };
     }
 
     if (filters.search) {
       where.OR = [
-        // { description: { contains: filters.search, mode: "insensitive" } },
         { description: { contains: filters.search, mode: "insensitive" } },
       ];
     }
@@ -71,12 +57,13 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
     const formattedTransactions = transactions.map((transaction) => ({
       ...transaction,
       category_name: transaction.category?.name,
-      // category_color: transaction.category?.color,
-      // category_icon: transaction.category?.icon,
     }));
 
     // Get total count for pagination
     const total = await prisma.transaction.count({ where });
+
+    // revalidatePath("/dashboard/transactions");
+    // revalidateTag("transactions");
 
     return {
       success: true,
@@ -104,8 +91,6 @@ export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
   }
 }
 
-console.log("sfsdf");
-
 // Get transaction by ID
 export async function getTransactionById(id: number) {
   try {
@@ -117,14 +102,12 @@ export async function getTransactionById(id: number) {
     const transaction = await prisma.transaction.findFirst({
       where: {
         id,
-        user_id: session.user.id,
+        userId: session.user.id,
       },
       include: {
         category: {
           select: {
             name: true,
-            color: true,
-            icon: true,
           },
         },
       },
@@ -138,8 +121,6 @@ export async function getTransactionById(id: number) {
     const formattedTransaction = {
       ...transaction,
       category_name: transaction.category?.name,
-      category_color: transaction.category?.color,
-      category_icon: transaction.category?.icon,
     };
 
     return { success: true, data: formattedTransaction };
@@ -150,14 +131,31 @@ export async function getTransactionById(id: number) {
 }
 
 // Create transaction
-export async function createTransaction(formData: FormData) {
+export async function createTransaction({
+  amount,
+  description,
+  date,
+  categoryId,
+  type,
+}: {
+  amount: number;
+  description: string;
+  date: Date;
+  categoryId: number;
+  type: string;
+}) {
   try {
-    const userId = await getUserId();
-    const amount = Number.parseFloat(formData.get("amount") as string);
-    const description = formData.get("description") as string;
-    const date = new Date(formData.get("date") as string);
-    const categoryId = formData.get("category_id") as string;
-    const type = formData.get("type") as string;
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
+
+    // const amount = Number.parseFloat(formData.get("amount") as string);
+    // const description = formData.get("description") as string;
+    // const date = new Date(formData.get("date") as string);
+    // const categoryId = formData.get("categoryId") as string;
+    // const type = formData.get("type") as string;
 
     // Validate input
     if (isNaN(amount) || !date || !type) {
@@ -167,16 +165,16 @@ export async function createTransaction(formData: FormData) {
     // Create transaction
     const transaction = await prisma.transaction.create({
       data: {
-        user_id: userId,
+        userId: session.user.id,
         amount,
         description,
         date,
-        category_id: categoryId ? Number(categoryId) : null,
+        categoryId: categoryId ? Number(categoryId) : null,
         type,
       },
     });
 
-    revalidatePath("/");
+    revalidatePath("/dashboard/transactions");
 
     return {
       success: true,
@@ -190,14 +188,28 @@ export async function createTransaction(formData: FormData) {
 }
 
 // Update transaction
-export async function updateTransaction(id: number, formData: FormData) {
+export async function updateTransaction(
+  id: number,
+  {
+    amount,
+    description,
+    date,
+    categoryId,
+    type,
+  }: {
+    amount: number;
+    description: string;
+    date: Date;
+    categoryId: number;
+    type: string;
+  }
+) {
   try {
-    const userId = await getUserId();
-    const amount = Number.parseFloat(formData.get("amount") as string);
-    const description = formData.get("description") as string;
-    const date = new Date(formData.get("date") as string);
-    const categoryId = formData.get("category_id") as string;
-    const type = formData.get("type") as string;
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
 
     // Validate input
     if (isNaN(amount) || !description || !date || !type) {
@@ -208,7 +220,7 @@ export async function updateTransaction(id: number, formData: FormData) {
     const existingTransaction = await prisma.transaction.findFirst({
       where: {
         id,
-        user_id: userId,
+        userId: session.user.id,
       },
     });
 
@@ -223,13 +235,12 @@ export async function updateTransaction(id: number, formData: FormData) {
         amount,
         description,
         date,
-        category_id: categoryId ? Number(categoryId) : null,
+        categoryId: categoryId ? Number(categoryId) : null,
         type,
       },
     });
 
-    revalidatePath("/");
-    // revalidatePath("/dashboard");
+    revalidatePath("/transactions");
 
     return { success: true, message: "Транзакція оновлена успішно" };
   } catch (error) {
@@ -241,13 +252,17 @@ export async function updateTransaction(id: number, formData: FormData) {
 // Delete transaction
 export async function deleteTransaction(id: number) {
   try {
-    const userId = await getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
 
     // Check if transaction exists and belongs to user
     const existingTransaction = await prisma.transaction.findFirst({
       where: {
         id,
-        user_id: userId,
+        userId: session.user.id,
       },
     });
 
@@ -260,8 +275,7 @@ export async function deleteTransaction(id: number) {
       where: { id },
     });
 
-    revalidatePath("/");
-    // revalidatePath("/dashboard");
+    revalidatePath("/transactions");
 
     return { success: true, message: "Транзакція видалена успішно" };
   } catch (error) {
@@ -273,12 +287,16 @@ export async function deleteTransaction(id: number) {
 // Get transaction stats
 export async function getTransactionStats() {
   try {
-    const userId = getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
 
     // Get total income
     const incomeResult = await prisma.transaction.aggregate({
       where: {
-        user_id: userId,
+        userId: session.user.id,
         type: "income",
       },
       _sum: {
@@ -289,7 +307,7 @@ export async function getTransactionStats() {
     // Get total expenses
     const expenseResult = await prisma.transaction.aggregate({
       where: {
-        user_id: userId,
+        userId: session.user.id,
         type: "expense",
       },
       _sum: {
@@ -323,13 +341,18 @@ export async function getTransactionStats() {
 // Get monthly spending data for chart
 export async function getMonthlySpending() {
   try {
-    const userId = getUserId();
+    const session = await auth.api.getSession({ headers: await headers() });
+
+    if (!session) {
+      redirect("/auth/sign-in");
+    }
+
     const currentYear = new Date().getFullYear();
 
     // Get all transactions for the current year
     const transactions = await prisma.transaction.findMany({
       where: {
-        user_id: userId,
+        userId: session.user.id,
         type: "expense",
         date: {
           gte: new Date(`${currentYear}-01-01`),

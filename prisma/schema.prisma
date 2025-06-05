@@ -65,6 +65,7 @@ model User {
   categories    Category[]
   transactions  Transaction[]
   budgets       Budget[]
+  currency      String?       @default("UAH")
 
   @@unique([email])
   @@map("user")

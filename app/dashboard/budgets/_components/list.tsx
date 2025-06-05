@@ -118,7 +118,14 @@ export function BudgetsList({
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">{budget.category.name}</h3>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">{budget.period}</Badge>
+                {/* Періодичність */}
+                <Badge variant="outline">
+                  {budget.period === "monthly"
+                    ? "Місячний"
+                    : budget.period === "yearly"
+                      ? "Річний"
+                      : "Щотижневий"}
+                </Badge>
                 <Badge variant="outline">{budget.amount}</Badge>
                 {/* <Badge variant="outline">
                   {budget.startDate.toLocaleDateString("uk-UA")}

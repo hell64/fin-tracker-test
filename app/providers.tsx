@@ -25,6 +25,7 @@ export function Providers({ children }: { children: ReactNode }) {
         settingsURL="/dashboard/settings"
         Link={Link}
         localization={betterAuthLocalizationUA}
+        settingsFields={["currency"]}
       >
         {children}
       </AuthUIProvider>

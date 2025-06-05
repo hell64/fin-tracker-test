@@ -21,6 +21,8 @@ import { getCategories } from "@/app/actions/category";
 import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { TransactionsContainer } from "./_components/container";
+// import { TransactionsDataTable } from "./_components/data-table";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -51,9 +53,13 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
       <DashboardHeader heading="Транзакції" text="Керуйте своїми транзакціями.">
         <TransactionDialog categories={categories} />
       </DashboardHeader>
-      <TransactionFilters categories={categories} />
+      {/* <TransactionFilters categories={categories} /> */}
       <Suspense fallback={<div>Loading...</div>}>
-        <TransactionsList transactions={transactions} categories={categories} />
+        {/* <TransactionsList transactions={transactions} categories={categories} /> */}
+        <TransactionsContainer
+          categories={categories}
+          initialTransactions={transactions}
+        />
       </Suspense>
     </DashboardShell>
   );

@@ -6,6 +6,113 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
+export interface TransactionFilters {
+  category?: string;
+  type?: string;
+  date?: string;
+  userId: string;
+}
+
+export interface FilteredTransaction {
+  id: number;
+  amount: number;
+  type: string;
+  description: string | null;
+  date: string;
+  category: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+export interface CategoryOption {
+  id: number;
+  name: string;
+}
+
+export async function getFilteredTransactions(
+  filters: TransactionFilters
+): Promise<FilteredTransaction[]> {
+  try {
+    const whereClause: any = {
+      userId: filters.userId,
+    };
+
+    // Filter by category
+    if (filters.category && filters.category !== "all") {
+      whereClause.categoryId = Number.parseInt(filters.category);
+    }
+
+    // Filter by type
+    if (filters.type && filters.type !== "all") {
+      whereClause.type = filters.type;
+    }
+
+    // Filter by date (assuming it's a specific date or date range)
+    if (filters.date) {
+      const filterDate = new Date(filters.date);
+      const startOfDay = new Date(filterDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(filterDate.setHours(23, 59, 59, 999));
+
+      whereClause.date = {
+        gte: startOfDay,
+        lte: endOfDay,
+      };
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where: whereClause,
+      include: {
+        category: true,
+      },
+      orderBy: {
+        date: "desc",
+      },
+    });
+
+    return transactions.map((transaction) => ({
+      id: transaction.id,
+      amount: transaction.amount,
+      type: transaction.type,
+      description: transaction.description,
+      date: transaction.date.toISOString(),
+      category: transaction.category
+        ? {
+            id: transaction.category.id,
+            name: transaction.category.name,
+          }
+        : null,
+    }));
+  } catch (error) {
+    console.error("Error fetching filtered transactions:", error);
+    return [];
+  }
+}
+
+export async function getUserCategories(
+  userId: string
+): Promise<CategoryOption[]> {
+  try {
+    const categories = await prisma.category.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return categories;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+}
+
 // Get transactions with pagination
 export async function getTransactions(page = 1, limit = 10, filters: any = {}) {
   try {

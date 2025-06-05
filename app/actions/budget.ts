@@ -80,7 +80,7 @@ export async function createBudget({
   period: string;
   startDate: Date;
   endDate: Date;
-  categoryId: number;
+  categoryId: string;
 }): Promise<any> {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -422,7 +422,7 @@ export async function updateBudget(
         period,
         startDate,
         endDate,
-        categoryId,
+        categoryId: Number(categoryId),
       },
     });
 

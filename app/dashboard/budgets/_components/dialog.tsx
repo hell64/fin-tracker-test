@@ -65,6 +65,7 @@ export function BudgetDialog({
 }: any) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  console.log(5555, budget, categories);
 
   const form = useForm({
     defaultValues: {
@@ -72,7 +73,7 @@ export function BudgetDialog({
       period: budget?.period || "monthly",
       startDate: budget?.startDate || new Date(),
       endDate: budget?.endDate || undefined,
-      categoryId: budget?.categoryId || "",
+      categoryId: budget?.category.id || "",
     },
     onSubmit: async ({ value }) => {
       let result;
@@ -189,31 +190,6 @@ export function BudgetDialog({
               />
             </div>
 
-            {/* <div className="grid gap-2">
-              <form.Field
-                name="categoryId"
-                children={(field) => (
-                  <Select
-                    value={field.state.value}
-                    onValueChange={(value) => field.handleChange(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Виберіть категорію" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.data.map((category: any) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.id.toString()}
-                        >
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div> */}
             <div className="grid gap-2">
               <form.Field
                 name="startDate"
@@ -248,8 +224,10 @@ export function BudgetDialog({
               name="categoryId"
               children={(field) => (
                 <Select
-                  value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value)}
+                  value={budget?.category.id.toString()}
+                  onValueChange={(value) => {
+                    field.handleChange(value);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Виберіть категорію" />

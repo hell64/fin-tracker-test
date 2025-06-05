@@ -186,8 +186,10 @@ export function TransactionDialog({
                 name="categoryId"
                 children={(field) => (
                   <Select
-                    value={field.state.value}
-                    onValueChange={(value) => field.handleChange(value)}
+                    value={transaction?.category.id.toString()}
+                    onValueChange={(value) => {
+                      field.handleChange(value);
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Виберіть категорію" />

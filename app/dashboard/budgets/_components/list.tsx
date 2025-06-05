@@ -127,12 +127,6 @@ export function BudgetsList({
                       : "Щотижневий"}
                 </Badge>
                 <Badge variant="outline">{budget.amount}</Badge>
-                {/* <Badge variant="outline">
-                  {budget.startDate.toLocaleDateString("uk-UA")}
-                </Badge>
-                <Badge variant="outline">
-                  {budget.endDate?.toLocaleDateString("uk-UA")}
-                </Badge> */}
               </div>
               <Progress
                 value={budget.amount / budget.category.spent}
@@ -148,6 +142,7 @@ export function BudgetsList({
                 <DropdownMenuContent align="end">
                   <BudgetDialog
                     budget={budget}
+                    categories={categories}
                     title="Редагувати бюджет"
                     description="Оновіть бюджет."
                     trigger={

@@ -472,3 +472,40 @@ export async function deleteBudget(id: number) {
     return { success: false, message: "Не вдалося видалити бюджет" };
   }
 }
+
+export async function calculateTotalAmountByCategory() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) {
+    redirect("/auth/sign-in");
+  }
+
+  const categories = await prisma.category.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    include: {
+      transactions: true,
+    },
+  });
+
+  const allSpendingInCategory = categories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    spending: category.transactions.reduce((acc, transaction) => {
+      return acc + transaction.amount;
+    }, 0),
+  }));
+
+  console.log(999999, allSpendingInCategory);
+
+  return {
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      spending: allSpendingInCategory.find(
+        (spending) => spending.id === category.id
+      )?.spending,
+    })),
+  };
+}

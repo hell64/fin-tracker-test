@@ -65,13 +65,12 @@ export function BudgetDialog({
 }: any) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  console.log(5555, budget, categories);
 
   const form = useForm({
     defaultValues: {
       amount: budget?.amount || "",
       period: budget?.period || "monthly",
-      startDate: budget?.startDate || new Date(),
+      startDate: budget?.startDate || undefined,
       endDate: budget?.endDate || undefined,
       categoryId: budget?.category.id || "",
     },
@@ -203,9 +202,15 @@ export function BudgetDialog({
                           !field.state.value && "text-muted-foreground"
                         )}
                       >
-                        {field.state.value
+                        {/* {field.state.value
                           ? format(field.state.value, "PPP", { locale: uk })
-                          : "Виберіть дату"}
+                          : format(new Date(), "PPP", { locale: uk })} */}
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {field.state.value ? (
+                          format(field.state.value, "PPP", { locale: uk })
+                        ) : (
+                          <span>Виберіть дату початку дії</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">

@@ -47,6 +47,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { TransactionContext, useTransactionContext } from "./context";
 
 export function TransactionsList({
   transactions,
@@ -66,6 +67,7 @@ export function TransactionsList({
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<any>(null);
+  const { refreshTransactions } = useTransactionContext();
 
   async function handleDeleteTransaction() {
     if (!transactionToDelete) return;
@@ -93,6 +95,7 @@ export function TransactionsList({
         variant: "destructive",
       });
     } finally {
+      await refreshTransactions();
       setDeleteDialogOpen(false);
       setTransactionToDelete(null);
     }
@@ -139,14 +142,14 @@ export function TransactionsList({
                   >
                     {transaction.type === "income" ? (
                       <div className="flex items-center ">
-                        <ArrowUp className="mr-1 h-4 w-4" />$
+                        <ArrowUp className="mr-1 h-4 w-4" />
                         {Math.abs(
                           Number.parseFloat(transaction.amount)
                         ).toFixed(2)}
                       </div>
                     ) : (
                       <div className="flex items-center ">
-                        <ArrowDown className="mr-1 h-4 w-4" />$
+                        <ArrowDown className="mr-1 h-4 w-4" />
                         {Math.abs(
                           Number.parseFloat(transaction.amount)
                         ).toFixed(2)}

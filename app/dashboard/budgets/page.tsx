@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getCategories } from "@/app/actions/category";
 import { getBudgets } from "@/app/actions/budget";
+import { calculateTotalAmountByCategory } from "@/app/actions/budget";
 // import { getCategories } from "../actions/category";
 // import { getBudgets } from "../actions/budget";
 
@@ -26,12 +27,20 @@ export default async function BudgetsPage({ searchParams }: PageProps) {
 
   const budgets = await getBudgets();
 
+  const allSpendingInBudgets = await calculateTotalAmountByCategory();
+
+  console.log(222222, allSpendingInBudgets);
+
   return (
     <DashboardShell>
       <DashboardHeader heading="Бюджети" text="Керуйте своїми бюджетами">
         <BudgetDialog categories={categories} />
       </DashboardHeader>
-      <BudgetsList budgets={budgets} categories={categories} spent={[]} />
+      <BudgetsList
+        budgets={budgets}
+        categories={categories}
+        spendings={allSpendingInBudgets}
+      />
     </DashboardShell>
   );
 }

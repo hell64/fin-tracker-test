@@ -43,6 +43,7 @@ import {
 import { uk } from "date-fns/locale";
 import { useForm } from "@tanstack/react-form";
 import type { AnyFieldApi } from "@tanstack/react-form";
+import { useTransactionContext } from "./context";
 
 function FieldInfo({ field }: { field: AnyFieldApi }) {
   return (
@@ -62,23 +63,27 @@ export function TransactionDialog({
   description = "Додайте нову транзакцію.",
   trigger,
 }: any) {
+  const { refreshTransactions } = useTransactionContext();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  // const router = useRouter();
 
   const form = useForm({
     defaultValues: {
       amount: transaction?.amount || "",
       date: transaction?.date || new Date(),
       type: transaction?.type || "expense",
-      categoryId: transaction?.category.name || "",
+      categoryId: transaction?.categoryId || "",
       description: transaction?.description || "",
     },
     onSubmit: async ({ value }) => {
       let result;
       if (transaction) {
         result = await updateTransaction(transaction.id, value);
+        await refreshTransactions();
       } else {
         result = await createTransaction(value);
+        await refreshTransactions();
       }
       if (result.success) {
         setOpen(false);
@@ -186,7 +191,7 @@ export function TransactionDialog({
                 name="categoryId"
                 children={(field) => (
                   <Select
-                    value={transaction?.category.id.toString()}
+                    value={field.state.value || ""}
                     onValueChange={(value) => {
                       field.handleChange(value);
                     }}

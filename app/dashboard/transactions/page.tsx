@@ -22,6 +22,7 @@ import { Suspense } from "react";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { TransactionsContainer } from "./_components/container";
+import { TransactionContext } from "./_components/context";
 // import { TransactionsDataTable } from "./_components/data-table";
 
 type PageProps = {
@@ -46,13 +47,16 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
     date: date ? new Date(date) : undefined,
   });
 
+  console.log(777, transactions);
+
   const categories = await getCategories();
 
   return (
     <DashboardShell>
-      <DashboardHeader heading="Транзакції" text="Керуйте своїми транзакціями.">
-        <TransactionDialog categories={categories} />
-      </DashboardHeader>
+      <DashboardHeader
+        heading="Транзакції"
+        text="Керуйте своїми транзакціями."
+      ></DashboardHeader>
       {/* <TransactionFilters categories={categories} /> */}
       <Suspense fallback={<div>Loading...</div>}>
         {/* <TransactionsList transactions={transactions} categories={categories} /> */}

@@ -58,11 +58,11 @@ import { Progress } from "@/components/ui/progress";
 export function BudgetsList({
   budgets,
   categories,
-  spent,
+  spendings,
 }: {
   budgets: any;
   categories: any;
-  spent: any;
+  spendings: any;
 }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -111,10 +111,24 @@ export function BudgetsList({
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-4 w-full ">
       {budgets.data?.map((budget: any) => (
         <Card key={budget.id} className="w-full border-gray-200">
-          <CardContent className="p-6">
+          <CardContent
+            className="p-6"
+            // style={{
+            //   color:
+            //     ((budget.amount *
+            //       spendings.categories.find(
+            //         (category: any) => category.id === budget.category.id
+            //       )?.spending) /
+            //       budget.amount) *
+            //       100 >
+            //     100
+            //       ? "red"
+            //       : "green",
+            // }}
+          >
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">{budget.category.name}</h3>
               <div className="flex items-center gap-2">
@@ -126,11 +140,40 @@ export function BudgetsList({
                       ? "Річний"
                       : "Щотижневий"}
                 </Badge>
-                <Badge variant="outline">{budget.amount}</Badge>
+                <Badge variant="outline" className="">
+                  Перевищено на{" "}
+                  {((budget.amount *
+                    spendings.categories.find(
+                      (category: any) => category.id === budget.category.id
+                    )?.spending) /
+                    budget.amount) *
+                    100}{" "}
+                  %
+                </Badge>
               </div>
               <Progress
-                value={budget.amount / budget.category.spent}
-                className="w-[60%]"
+                value={
+                  // percent of budget.amount
+                  ((budget.amount *
+                    spendings.categories.find(
+                      (category: any) => category.id === budget.category.id
+                    )?.spending) /
+                    budget.amount) *
+                  100
+                }
+                className={cn(
+                  "w-[60%]",
+                  // red if more than 100%
+                  ((budget.amount *
+                    spendings.categories.find(
+                      (category: any) => category.id === budget.category.id
+                    )?.spending) /
+                    budget.amount) *
+                    100 >
+                    100
+                    ? "bg-red-500"
+                    : "bg-green-500"
+                )}
               />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

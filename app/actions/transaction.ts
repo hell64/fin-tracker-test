@@ -30,6 +30,16 @@ export interface CategoryOption {
   name: string;
 }
 
+export async function calculateTotalAmountByCategory(categoryId: number) {
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      categoryId,
+    },
+  });
+
+  return transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
+}
+
 export async function getFilteredTransactions(
   filters: TransactionFilters
 ): Promise<FilteredTransaction[]> {
@@ -69,6 +79,8 @@ export async function getFilteredTransactions(
         date: "desc",
       },
     });
+
+    // console.log(66666, transactions);
 
     return transactions.map((transaction) => ({
       id: transaction.id,
@@ -214,6 +226,7 @@ export async function getTransactionById(id: number) {
       include: {
         category: {
           select: {
+            id: true,
             name: true,
           },
         },
@@ -227,7 +240,10 @@ export async function getTransactionById(id: number) {
     // Format transaction for the frontend
     const formattedTransaction = {
       ...transaction,
-      category_name: transaction.category?.name,
+      category: {
+        id: transaction.category?.id,
+        name: transaction.category?.name,
+      },
     };
 
     return { success: true, data: formattedTransaction };

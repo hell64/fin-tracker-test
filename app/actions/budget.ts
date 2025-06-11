@@ -31,43 +31,6 @@ const CreateBudgetSchema = z
     }
   );
 
-// const UpdateBudgetSchema = z
-//   .object({
-//     id: z.number(),
-//     amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
-//     period: z.enum(["weekly", "monthly", "yearly"], {
-//       errorMap: () => ({ message: "Please select a valid period" }),
-//     }),
-//     startDate: z.coerce.date(),
-//     endDate: z.coerce.date().optional(),
-//     categoryId: z.coerce.number().min(1, "Please select a category"),
-//   })
-//   .refine(
-//     (data) => {
-//       if (data.endDate && data.endDate <= data.startDate) {
-//         return false;
-//       }
-//       return true;
-//     },
-//     {
-//       message: "End date must be after start date",
-//       path: ["endDate"],
-//     }
-//   );
-
-// Types
-// type BudgetFormState = {
-//   errors?: {
-//     amount?: string[];
-//     period?: string[];
-//     startDate?: string[];
-//     endDate?: string[];
-//     categoryId?: string[];
-//     _form?: string[];
-//   };
-//   success?: boolean;
-// };
-
 // Create Budget
 export async function createBudget({
   amount,
@@ -87,23 +50,6 @@ export async function createBudget({
   if (!session) {
     redirect("/auth/sign-in");
   }
-
-  // const validatedFields = CreateBudgetSchema.safeParse({
-  //   amount: formData.get("amount"),
-  //   period: formData.get("period"),
-  //   startDate: formData.get("startDate"),
-  //   endDate: formData.get("endDate") || undefined,
-  //   categoryId: formData.get("categoryId"),
-  // });
-
-  // if (!validatedFields.success) {
-  //   return {
-  //     errors: validatedFields.error.flatten().fieldErrors,
-  //   };
-  // }
-
-  // const { amount, period, startDate, endDate, categoryId } =
-  //   validatedFields.data;
 
   try {
     // Verify category belongs to user
@@ -188,18 +134,6 @@ export async function getBudgets() {
   }
 
   try {
-    // const spent = await prisma.transaction.aggregate({
-    //   where: {
-    //     userId: session.user.id,
-    //     type: "expense",
-    //     date: {
-    //       gte: new Date(new Date().setDate(new Date().getDate() - 30)),
-    //       lte: new Date(),
-    //     },
-    //   },
-    //   _sum: { amount: true },
-    // });
-
     const budgets = await prisma.budget.findMany({
       where: {
         userId: session.user.id,

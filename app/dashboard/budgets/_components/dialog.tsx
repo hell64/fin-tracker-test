@@ -219,6 +219,7 @@ export function BudgetDialog({
                         selected={field.state.value}
                         onSelect={(date) => field.handleChange(date)}
                         initialFocus
+                        locale={uk}
                       />
                     </PopoverContent>
                   </Popover>

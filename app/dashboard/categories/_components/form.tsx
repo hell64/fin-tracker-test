@@ -38,6 +38,7 @@ import {
   updateTransaction,
 } from "@/app/actions/transaction";
 import { getCategories } from "@/app/actions/category";
+import { uk } from "date-fns/locale";
 
 interface TransactionFormProps {
   transaction?: any;
@@ -217,6 +218,7 @@ export function CategoriesForm({
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
+                  locale={uk}
                   selected={date}
                   onSelect={(date) => date && setDate(date)}
                   initialFocus

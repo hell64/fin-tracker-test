@@ -58,7 +58,6 @@ export function TransactionsList({
 }) {
   const router = useRouter();
   const { toast } = useToast();
-  // const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -79,7 +78,6 @@ export function TransactionsList({
           title: "Успіх",
           description: result.message,
         });
-        // router.refresh();
       } else {
         toast({
           title: "Помилка",
@@ -145,14 +143,16 @@ export function TransactionsList({
                         <ArrowUp className="mr-1 h-4 w-4" />
                         {Math.abs(
                           Number.parseFloat(transaction.amount)
-                        ).toFixed(2)}
+                        ).toFixed(2)}{" "}
+                        {transaction.currency}
                       </div>
                     ) : (
                       <div className="flex items-center ">
                         <ArrowDown className="mr-1 h-4 w-4" />
                         {Math.abs(
                           Number.parseFloat(transaction.amount)
-                        ).toFixed(2)}
+                        ).toFixed(2)}{" "}
+                        {transaction.currency}
                       </div>
                     )}
                   </TableCell>

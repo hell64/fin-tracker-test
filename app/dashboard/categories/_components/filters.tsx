@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useQueryState } from "nuqs";
+import { uk } from "date-fns/locale";
 
 export function CategoriesFilters() {
   const [category, setCategory] = useQueryState("category", {
@@ -70,6 +71,7 @@ export function CategoriesFilters() {
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
+            locale={uk}
             selected={date ? new Date(date) : undefined}
             onSelect={(date) => setDate(date?.toISOString() || "")}
             initialFocus

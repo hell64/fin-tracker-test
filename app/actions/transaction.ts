@@ -274,11 +274,14 @@ export async function createTransaction({
       redirect("/auth/sign-in");
     }
 
-    // const amount = Number.parseFloat(formData.get("amount") as string);
-    // const description = formData.get("description") as string;
-    // const date = new Date(formData.get("date") as string);
-    // const categoryId = formData.get("categoryId") as string;
-    // const type = formData.get("type") as string;
+    const currency = await prisma.user.findFirst({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        currency: true,
+      },
+    });
 
     // Validate input
     if (isNaN(amount) || !date || !type) {
@@ -294,6 +297,7 @@ export async function createTransaction({
         date,
         categoryId: categoryId ? Number(categoryId) : null,
         type,
+        currency: currency?.currency || "UAH",
       },
     });
 

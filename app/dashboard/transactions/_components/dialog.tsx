@@ -234,6 +234,7 @@ export function TransactionDialog({
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
+                        locale={uk}
                         selected={field.state.value}
                         onSelect={(date) => field.handleChange(date)}
                         initialFocus

@@ -166,7 +166,7 @@ export default function Dashboard({ userId = "demo-user" }: DashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {summaryData?.balance.toLocaleString("uk-UA")} ₴
+                    {summaryData?.balance.toLocaleString("uk-UA")}{" "}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {summaryData?.balance && summaryData?.totalIncome ? (
@@ -405,7 +405,8 @@ export default function Dashboard({ userId = "demo-user" }: DashboardProps) {
                           className={`font-bold ${transaction.type === "income" ? "text-green-600" : "text-red-600"}`}
                         >
                           {transaction.type === "income" ? "+" : ""}
-                          {transaction.amount.toLocaleString("uk-UA")} ₴
+                          {transaction.amount.toLocaleString("uk-UA")}{" "}
+                          {transaction.currency || "UAH"}
                         </div>
                       </div>
                     ))}

@@ -7,7 +7,7 @@ import { SearchParams } from "next/dist/server/request/search-params";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getCategories } from "@/app/actions/category";
-import { getBudgets } from "@/app/actions/budget";
+import { getBudgets, getBudgetSpentAnalysis } from "@/app/actions/budget";
 import { calculateTotalAmountByCategory } from "@/app/actions/budget";
 // import { getCategories } from "../actions/category";
 // import { getBudgets } from "../actions/budget";
@@ -29,7 +29,10 @@ export default async function BudgetsPage({ searchParams }: PageProps) {
 
   const allSpendingInBudgets = await calculateTotalAmountByCategory();
 
-  console.log(222222, allSpendingInBudgets);
+  // console.log(222222, allSpendingInBudgets);
+
+  const budgetSpentAnalysis = await getBudgetSpentAnalysis();
+  console.log(33333, budgetSpentAnalysis);
 
   return (
     <DashboardShell>
@@ -39,7 +42,7 @@ export default async function BudgetsPage({ searchParams }: PageProps) {
       <BudgetsList
         budgets={budgets}
         categories={categories}
-        spendings={allSpendingInBudgets}
+        budgetSpentAnalysis={budgetSpentAnalysis}
       />
     </DashboardShell>
   );

@@ -58,11 +58,11 @@ import { Progress } from "@/components/ui/progress";
 export function BudgetsList({
   budgets,
   categories,
-  spendings,
+  budgetSpentAnalysis,
 }: {
   budgets: any;
   categories: any;
-  spendings: any;
+  budgetSpentAnalysis: any;
 }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -131,6 +131,7 @@ export function BudgetsList({
           >
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">{budget.category.name}</h3>
+
               <div className="flex items-center gap-2">
                 {/* Періодичність */}
                 <Badge variant="outline">
@@ -140,39 +141,44 @@ export function BudgetsList({
                       ? "Річний"
                       : "Щотижневий"}
                 </Badge>
-                <Badge variant="outline" className="">
-                  Перевищено на{" "}
-                  {((budget.amount *
-                    spendings.categories.find(
-                      (category: any) => category.id === budget.category.id
-                    )?.spending) /
-                    budget.amount) *
-                    100}{" "}
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "w-[40%]",
+                    budgetSpentAnalysis
+                      .filter(
+                        (spending: any) => spending.budgetId === budget.id
+                      )
+                      .map((spending: any) => spending.spentPercentage) > 100
+                      ? "bg-red-500"
+                      : "bg-green-500"
+                  )}
+                >
+                  Витрачено на{" "}
+                  {budgetSpentAnalysis
+                    .filter((spending: any) => spending.budgetId === budget.id)
+                    .map((spending: any) => spending.spentPercentage)}
                   %
                 </Badge>
               </div>
               <Progress
-                value={
-                  // percent of budget.amount
-                  ((budget.amount *
-                    spendings.categories.find(
-                      (category: any) => category.id === budget.category.id
-                    )?.spending) /
-                    budget.amount) *
-                  100
-                }
+                value={budgetSpentAnalysis
+                  .filter((spending: any) => spending.budgetId === budget.id)
+                  .map((spending: any) => spending.spentPercentage)}
                 className={cn(
-                  "w-[60%]",
+                  "w-[40%]"
                   // red if more than 100%
-                  ((budget.amount *
-                    spendings.categories.find(
-                      (category: any) => category.id === budget.category.id
-                    )?.spending) /
-                    budget.amount) *
-                    100 >
-                    100
-                    ? "bg-red-500"
-                    : "bg-green-500"
+                  // ((budget.amount *
+                  //   budgetSpentAnalysis
+                  //     .filter(
+                  //       (spending: any) => spending.budgetId === budget.id
+                  //     )
+                  //     .map((spending: any) => spending.spentPercentage)) /
+                  //   budget.amount) *
+                  //   100 >
+                  //   100
+                  //   ? "bg-red-500"
+                  //   : "bg-green-500"
                 )}
               />
               <DropdownMenu>
